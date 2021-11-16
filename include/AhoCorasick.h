@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <unordered_set>
+#include <string>
 
 struct StateMachine {
     std::vector<int> out, f;

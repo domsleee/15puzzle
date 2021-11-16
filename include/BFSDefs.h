@@ -1,5 +1,6 @@
 #include "BoardRaw.h"
 #include "Util.h"
+#include <memory>
 
 struct BFSNode {
     BoardRaw board;

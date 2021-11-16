@@ -54,19 +54,19 @@ public:
     }
 };
 
-namespace std {
-    template<>
-    struct std::hash<BoardRaw> {
-        std::size_t operator()(BoardRaw const& board) const noexcept {
-            // see https://stackoverflow.com/questions/20511347/a-good-hash-function-for-a-vector
-            std::size_t seed = board.grid.size();
-            for(auto& i : board.grid) {
-                seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-            }
-            return seed;
+
+template<>
+struct std::hash<BoardRaw> {
+    std::size_t operator()(BoardRaw const& board) const noexcept {
+        // see https://stackoverflow.com/questions/20511347/a-good-hash-function-for-a-vector
+        std::size_t seed = board.grid.size();
+        for(auto& i : board.grid) {
+            seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
         }
-    };
-}
+        return seed;
+    }
+};
+
 
 
 #endif  // BOARDRECT_H

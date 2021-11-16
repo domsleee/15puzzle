@@ -1,6 +1,7 @@
 #include <vector>
 #include <unordered_set>
 #include <string>
+#include <memory>
 
 struct TrieNode {
     std::shared_ptr<TrieNode> children[4];
