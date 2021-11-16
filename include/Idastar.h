@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Direction.h"
+#include "AhoCorasick.h"
 
 template <class B>
 class Idastar {
@@ -12,9 +13,10 @@ private:
     int minCost;
     int limit;
     long long nodes;
+    StateMachine &fsm;
 
 public:
-    Idastar();
+    Idastar(StateMachine &fsm);
 
     std::vector<Direction> solve(const B& start);
     bool dfs(B& root, int g, Direction prevMove);

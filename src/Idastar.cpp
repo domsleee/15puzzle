@@ -7,22 +7,7 @@
 constexpr int INF = 1000;
 
 template <class B>
-Idastar<B>::Idastar() : path({}), minCost(INF), limit(0), nodes(0) {}
-
-Direction inverse(Direction move) {
-    switch (move) {
-        case Direction::U:
-            return Direction::D;
-        case Direction::L:
-            return Direction::R;
-        case Direction::D:
-            return Direction::U;
-        case Direction::R:
-            return Direction::L;
-        default:
-            assertm(0, "Unknown direction in inverse");
-    }
-}
+Idastar<B>::Idastar(StateMachine &fsm) : path({}), minCost(INF), limit(0), nodes(0), fsm(fsm) {}
 
 template <class B>
 std::vector<Direction> Idastar<B>::solve(const B& start) {
@@ -46,16 +31,21 @@ std::vector<Direction> Idastar<B>::solve(const B& start) {
     while (path.empty()) {
         minCost = INF;
         DEBUG(' ' << limit << ", " << nodes);
+        //DEBUG("FSM STATE " << fsm.state);
+        ///DEBUG("FSM STATE after undo " << fsm.state);
+        assertm(fsm.state == 0, "fsm state is 0");
 
         for (auto startDir : startMoves) {
             auto copy = start;
             copy.applyMove(startDir);
+            fsm.applyMove(static_cast<int>(startDir));
 
             if (dfs(copy, 1, inverse(startDir))) {
                 path.push_back(startDir);
                 DEBUG("Nodes expanded: " << nodes);
+                fsm.undoMove(0);
                 return path;
-            }
+            } else fsm.undoMove(0);
         }
 
         limit = minCost;
@@ -85,13 +75,15 @@ bool Idastar<B>::dfs(B& node, int g, Direction prevMove) {
 
     for (int i = 0; i < 4; i++) {
         auto dir = static_cast<Direction>(i);
-        if (prevMove != dir && node.canMove(dir)) {
+        if (fsm.canMove(i) && node.canMove(dir)) {
             auto prev = node.applyMove(dir);
+            auto prevFsm = fsm.applyMove(i);
 
             if (dfs(node, g + 1, inverse(dir))) {
                 path.push_back(dir);
+                fsm.undoMove(prevFsm);
                 return true;
-            }
+            } else fsm.undoMove(prevFsm);
 
             node.undoMove(prev);
         }

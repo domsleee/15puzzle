@@ -14,6 +14,7 @@
 #include "../include/InputParser.h"
 #include "../include/Util.h"
 #include "../include/WalkingDistance.h"
+#include "../include/FSMPruner.h"
 
 // Dynamic board size
 // Dynamic database pattern
@@ -121,9 +122,9 @@ bool solvable(const std::vector<int>& solution, int width,
 
 template <class B>
 void solve(const std::vector<int>& solution, int width, int height,
-           const std::vector<std::vector<int>>& grids) {
+           const std::vector<std::vector<int>>& grids, StateMachine &fsm) {
     // Setup search
-    Idastar<B> search;
+    Idastar<B> search(fsm);
 
     // Start search
     std::vector<std::pair<B, std::vector<Direction>>> results;
@@ -166,6 +167,10 @@ void solve(const std::vector<int>& solution, int width, int height,
 }
 
 int main(int argc, const char* argv[]) {
+    // getfsm
+    auto pruner = FSMPruner();
+    auto fsm = pruner.go();
+
     InputParser::parse(argc, argv);
 
     // Help output
@@ -199,9 +204,9 @@ int main(int argc, const char* argv[]) {
     const auto startBoards(getBoards());
 
     if (width == height) {
-        solve<Board>(solution, width, height, startBoards);
+        solve<Board>(solution, width, height, startBoards, fsm);
     } else {
-        solve<BoardRect>(solution, width, height, startBoards);
+        solve<BoardRect>(solution, width, height, startBoards, fsm);
     }
 
     return 0;

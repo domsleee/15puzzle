@@ -76,7 +76,7 @@ bool PatternGroup::canShift(const Pattern& pattern, int tile,
 
 int PatternGroup::getDelta(const Pattern& pattern, int tile, int offset) const {
     return std::transform_reduce(
-        std::execution::par_unseq, pattern.grid.cbegin() + offset + 1,
+        pattern.grid.cbegin() + offset + 1,
         pattern.grid.cbegin() + offset + WIDTH, deltas[tile], std::plus<>(),
         [this, &tile](const auto skip) {
             if (skip == 0) {

@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "../include/Direction.h"
+#include "../include/BoardRaw.h"
 
 std::vector<int> combine(const std::vector<std::vector<int>>& grids) {
     std::vector<int> solution(grids[0].size(), 0);
@@ -37,4 +38,70 @@ std::vector<std::array<bool, 4>> calcMoveList(int width, int height) {
     }
 
     return moves;
+}
+
+Direction inverse(Direction move) {
+    switch (move) {
+        case Direction::U:
+            return Direction::D;
+        case Direction::L:
+            return Direction::R;
+        case Direction::D:
+            return Direction::U;
+        case Direction::R:
+            return Direction::L;
+        default:
+            assertm(0, "Unknown direction in inverse");
+    }
+}
+
+char directionToChar(Direction move) {
+    switch (move) {
+        case Direction::U: return 'u';
+        case Direction::D: return 'd';
+        case Direction::R: return 'r';
+        case Direction::L: return 'l';
+    }
+}
+
+int charToInt(char move) {
+    return static_cast<int>(charToDirection(move));
+}
+
+Direction charToDirection(char move) {
+    switch (move) {
+        case 'u': return Direction::U;
+        case 'd': return Direction::D;
+        case 'r': return Direction::R;
+        case 'l': return Direction::L;
+    }
+    assertm(0, "Unknown move in charToDirection");
+}
+
+std::vector<BoardRaw> getAllStartingBoards() {
+    /*return {
+        BoardRaw({
+            1, 2, 3, 4,
+            5, 6, 7, 8,
+            9, 10, 11, 12,
+            13,14, 15, 0
+        }, 4, 4)
+    };*/
+    std::vector<BoardRaw> res;
+    auto startBoard = BoardRaw({
+        1, 2, 3, 4,
+        5, 6, 7, 8,
+        9, 10, 11, 12,
+        13,14, 15, 0
+    }, 4, 4);
+    res.push_back(startBoard);
+    auto lastIndex = startBoard.grid.size()-1;
+
+    for (auto i = 0; i < lastIndex; ++i) {
+        auto newGrid = startBoard.grid;
+        std::swap(newGrid[i], newGrid[lastIndex]);
+        res.push_back(BoardRaw(newGrid, 4, 4));
+    }
+
+    return res;
 }

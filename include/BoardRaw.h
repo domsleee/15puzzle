@@ -1,5 +1,5 @@
-#ifndef BOARDRECT_H
-#define BOARDRECT_H
+#ifndef BOARDRAW_H
+#define BOARDRAW_H
 
 #include <array>
 #include <ostream>
@@ -12,9 +12,11 @@
     Rectangular board
     - No mirror
     - No walking distance
+    - No patterns
+    - No heuristic
 */
 
-class BoardRect {
+class BoardRaw {
     const int WIDTH;
     const int HEIGHT;
 
@@ -27,34 +29,44 @@ class BoardRect {
     // Tiles
     int blank;  // Position of blank (since patterns don't store the blank)
 
-    // Used for disjoint database
-    std::vector<int> patterns;  // Pattern IDs
-
     int getTile(int posn) const;
     void setTile(int posn, int tile);
 
     int getDelta(const std::vector<int>& g, int tile, int offset) const;
 
     struct MoveState {
-        int pattern;
         int blank;
     };
 
 public:
-    BoardRect(const std::vector<int>& g, int width, int height);
+    BoardRaw(const std::vector<int>& g, int width, int height);
     std::vector<int> grid;  // Value to position mapping
 
-    int getHeuristic() const;
     bool canMove(Direction dir);
     // Should be run only once at start of search
     std::vector<Direction> getMoves() const;
     MoveState applyMove(Direction dir);
     void undoMove(const MoveState& prev);
 
-    friend std::ostream& operator<<(std::ostream& out, const BoardRect& board);
-    friend bool operator==(const BoardRect &lhs, const BoardRect &rhs) {
+    friend std::ostream& operator<<(std::ostream& out, const BoardRaw& board);
+    friend bool operator==(const BoardRaw &lhs, const BoardRaw &rhs) {
         return lhs.grid == rhs.grid;
     }
 };
+
+namespace std {
+    template<>
+    struct std::hash<BoardRaw> {
+        std::size_t operator()(BoardRaw const& board) const noexcept {
+            // see https://stackoverflow.com/questions/20511347/a-good-hash-function-for-a-vector
+            std::size_t seed = board.grid.size();
+            for(auto& i : board.grid) {
+                seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            }
+            return seed;
+        }
+    };
+}
+
 
 #endif  // BOARDRECT_H

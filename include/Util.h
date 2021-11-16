@@ -7,6 +7,9 @@
 #include <iostream>
 #include <vector>
 
+#include "Direction.h"
+#include "BoardRaw.h"
+
 #define assertm(expr, msg) assert(((void)(msg), (expr)))
 #define DEBUG(x) std::cout << x << '\n'
 #define START_TIMER(name) auto timer_##name = std::chrono::steady_clock::now()
@@ -23,5 +26,10 @@
 std::vector<int> combine(const std::vector<std::vector<int>>& grids);
 int getBlank(const std::vector<int>& board);
 std::vector<std::array<bool, 4>> calcMoveList(int width, int height);
+Direction inverse(Direction move);
+char directionToChar(Direction move);
+Direction charToDirection(char move);
+int charToInt(char move);
+std::vector<BoardRaw> getAllStartingBoards();
 
 #endif  // UTIL_H
