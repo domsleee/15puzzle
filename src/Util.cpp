@@ -62,6 +62,7 @@ char directionToChar(Direction move) {
         case Direction::R: return 'r';
         case Direction::L: return 'l';
     }
+    assertm(0, "unknown direction");
 }
 
 int charToInt(char move) {

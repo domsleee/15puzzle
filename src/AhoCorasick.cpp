@@ -12,37 +12,35 @@ StateMachine::StateMachine(std::vector<std::vector<int>> &&g, std::vector<int> &
 
 int StateMachine::applyMove(int i) {
     auto oldState = state;
-    auto answer = getAnsUsingFailFn(state, i);
-    // auto answer = state;  
-    // while (g[answer][i] == -1)
-    //     answer = getAnsUsingFailFn(answer, i);//f[answer];
-    // //auto answer2 = getAnsUsingFailFn(state, i);
-  
-    //assert(answer == answer2);
-    state = g[answer][i];
-    return oldState;
-}
-
-int StateMachine::getAnsUsingFailFn(int answer, int i) {
-    if (g[answer][i] == -1) {
-        return f[answer] = getAnsUsingFailFn(f[answer], i);
-    }
-    return answer;
-}
-
-int StateMachine::applyMoveOld(int i) {
-    int oldState = state;
-    state = g[state][i];
-    //DEBUG("fsm: " << oldState << " => " << state);
+    state = findNextStateUnsafe(state, i);
+    AHO_DEBUG("apply move " << oldState << " => " << state);
     return oldState;
 }
 
 void StateMachine::undoMove(int state) {
     this->state = state;
+    AHO_DEBUG("undo move " << state);
 }
 
 bool StateMachine::canMove(int i) {
-    return !out[g[state][i]];
+    auto nextState = findNextStateUnsafe(state, i);
+    return !out[nextState];
+}
+
+int StateMachine::findNextState(int state, int i) {
+    auto answer = state;  
+    while (g[answer][i] == -1)
+        answer = f[answer];
+    return g[answer][i];
+}
+
+int StateMachine::findNextStateUnsafe(int state, int i) {
+    return g[state][i];
+}
+
+void StateMachine::calcAndSaveNextState(int state, int i) {
+    if (g[state][i] != -1) return;
+    g[state][i] = findNextState(state, i);
 }
 
 StateMachine BuildFSMFromStrings(const std::unordered_set<std::string> &strings) {
@@ -66,6 +64,7 @@ StateMachine BuildFSMFromStrings(const std::unordered_set<std::string> &strings)
         out[currentState] |= 1;
         i++;
     }
+    DEBUG("STATES: " << states << ", numNodes " << numNodes);
     for (auto i = 0; i < 4; ++i) {
         if (g[0][i] == -1) g[0][i] = 0;
     }
@@ -85,7 +84,7 @@ StateMachine BuildFSMFromStrings(const std::unordered_set<std::string> &strings)
             auto failure = f[state];
             while (g[failure][i] == -1) failure = f[failure];
 
-            failure = g[failure][i] > 0;
+            failure = g[failure][i];
             f[g[state][i]] = failure;
 
             out[g[state][i]] |= out[failure];
@@ -93,25 +92,18 @@ StateMachine BuildFSMFromStrings(const std::unordered_set<std::string> &strings)
         }
     }
 
-    for (auto i = 0; i < out.size(); ++i) {
+    for (auto i = 0; i < states; ++i) {
         AHO_DEBUG("out[" << i << "] = " << out[i]);
     }
-    for (auto i = 0; i < out.size(); ++i) {
+    for (auto i = 0; i < states; ++i) {
         AHO_DEBUG("f[" << i << "] = " << f[i]);
     }
 
-    q.push(0);
-    while (q.size()) {
-        auto state = q.front(); q.pop();
-        for (auto i = 0; i < 4; ++i) {
-            if (g[state][i] == -1) {
-                auto relState = state;
-                //while (g[relState][i] == -1) relState = f[relState];
-                //g[state][i] = g[relState][i];
-            }
-            else if (g[state][i] != 0) q.push(g[state][i]);
+    auto fsm = StateMachine(std::move(g), std::move(out), std::move(f));
+    for (int state = 0; state < states; ++state) {
+        for (int i = 0; i < 4; ++i) {
+            fsm.calcAndSaveNextState(state, i);
         }
     }
-
-    return StateMachine(std::move(g), std::move(out), std::move(f));
+    return fsm;
 }

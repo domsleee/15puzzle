@@ -17,6 +17,7 @@ StateMachine FSMPruner::go() {
     START_TIMER(forbiddenWords);
     auto forbiddenWords = ForbiddenWords(maxDepth);
     auto strings = forbiddenWords.getForbiddenWords();
+    DEBUG("found " << strings.size() << " forbidden strings");
     END_TIMER(forbiddenWords);
 
     DEBUG("Building FSM from strings");

@@ -33,7 +33,8 @@ std::vector<Direction> Idastar<B>::solve(const B& start) {
         DEBUG(' ' << limit << ", " << nodes);
         //DEBUG("FSM STATE " << fsm.state);
         ///DEBUG("FSM STATE after undo " << fsm.state);
-        assertm(fsm.state == 0, "fsm state is 0");
+        fsm.undoMove(0);
+        //assertm(fsm.state == 0, "fsm state is 0");
 
         for (auto startDir : startMoves) {
             auto copy = start;

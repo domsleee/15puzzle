@@ -9,11 +9,17 @@ struct StateMachine {
     int state;
 
     StateMachine(std::vector<std::vector<int>> &&g, std::vector<int> &&out, std::vector<int> &&f);
+    
     void undoMove(int prev);
     bool canMove(int i);
     int applyMove(int i);
-    int getAnsUsingFailFn(int answer, int i);
-    int applyMoveOld(int i);
+
+    // precompute
+    void calcAndSaveNextState(int state, int i);
+
+private:
+    int findNextState(int state, int i);
+    int findNextStateUnsafe(int state, int i);
 };
 
 StateMachine BuildFSMFromStrings(const std::unordered_set<std::string> &strings);
