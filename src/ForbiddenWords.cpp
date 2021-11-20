@@ -9,13 +9,15 @@
 
 #define FORB_DEBUG(x)
 
-ForbiddenWords::ForbiddenWords(int maxDepth)
-    : maxDepth(maxDepth)
+ForbiddenWords::ForbiddenWords(int maxDepth, int width, int height)
+    : maxDepth(maxDepth),
+      width(width),
+      height(height)
     {}
 
 std::unordered_set<std::string> ForbiddenWords::getForbiddenWords() {
     std::unordered_set<std::string> uni, inter;
-    auto startingBoards = getAllStartingBoards();
+    auto startingBoards = getAllStartingBoards(width, height);
 
     for (const auto &startBoard: startingBoards) {
         auto r = getForbiddenWords(startBoard, maxDepth);
@@ -102,7 +104,7 @@ bool ForbiddenWords::validateDuplicateStrings(std::unordered_set<std::string> &s
     auto res = true;
 
     auto totalStringsRemoved = 0;
-    for (const auto &startBoard: getAllStartingBoards()) {
+    for (const auto &startBoard: getAllStartingBoards(width, height)) {
         auto stringsRemoved = validateDuplicateStrings(startBoard, strings);
         FORB_DEBUG("strings removed by validation " << stringsRemoved);
         totalStringsRemoved += stringsRemoved;

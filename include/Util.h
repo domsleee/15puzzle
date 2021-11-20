@@ -30,6 +30,6 @@ Direction inverse(Direction move);
 char directionToChar(Direction move);
 Direction charToDirection(char move);
 int charToInt(char move);
-std::vector<BoardRaw> getAllStartingBoards();
+std::vector<BoardRaw> getAllStartingBoards(int width, int height);
 
 #endif  // UTIL_H

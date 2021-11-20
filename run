@@ -1,3 +1,6 @@
 set -e;
 g++-11 -O2 -std=c++17 src/*.cpp -o bin/puzzle
+# ./bin/puzzle -d databases/8-reg -b boards/8-reg
+./bin/puzzle -d databases/6666-reg -b boards/24-reg
+exit 0
 cat databases/555-reg boards/15-reg | ./bin/puzzle

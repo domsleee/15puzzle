@@ -79,29 +79,20 @@ Direction charToDirection(char move) {
     assertm(0, "Unknown move in charToDirection");
 }
 
-std::vector<BoardRaw> getAllStartingBoards() {
-    /*return {
-        BoardRaw({
-            1, 2, 3, 4,
-            5, 6, 7, 8,
-            9, 10, 11, 12,
-            13,14, 15, 0
-        }, 4, 4)
-    };*/
+std::vector<BoardRaw> getAllStartingBoards(int width, int height) {
     std::vector<BoardRaw> res;
-    auto startBoard = BoardRaw({
-        1, 2, 3, 4,
-        5, 6, 7, 8,
-        9, 10, 11, 12,
-        13,14, 15, 0
-    }, 4, 4);
+    std::vector<int> boardVec(width*height);
+    for (int i = 0; i < (width * height) - 1; ++i) boardVec[i] = i+1;
+    boardVec[(width * height) - 1] = 0;
+
+    auto startBoard = BoardRaw(boardVec, width, height);
     res.push_back(startBoard);
     auto lastIndex = startBoard.grid.size()-1;
 
     for (auto i = 0; i < lastIndex; ++i) {
         auto newGrid = startBoard.grid;
         std::swap(newGrid[i], newGrid[lastIndex]);
-        res.push_back(BoardRaw(newGrid, 4, 4));
+        res.push_back(BoardRaw(newGrid, width, height));
     }
 
     return res;

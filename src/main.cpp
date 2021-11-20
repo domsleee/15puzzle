@@ -14,7 +14,7 @@
 #include "../include/InputParser.h"
 #include "../include/Util.h"
 #include "../include/WalkingDistance.h"
-#include "../include/FSMPruner.h"
+#include "../include/FSMBuilder.h"
 
 // Dynamic board size
 // Dynamic database pattern
@@ -110,6 +110,8 @@ bool solvable(const std::vector<int>& solution, int width,
               const std::vector<int>& board) {
     if (width % 2 == 1) {
         // Odd width
+        DEBUG(getInversions(solution) << ' ' << getInversions(board));
+        for (auto i: board) std::cout << " " << i; std::cout << '\n';
         return (getInversions(solution) % 2) == (getInversions(board) % 2);
     }
 
@@ -167,10 +169,6 @@ void solve(const std::vector<int>& solution, int width, int height,
 }
 
 int main(int argc, const char* argv[]) {
-    // getfsm
-    auto pruner = FSMPruner();
-    auto fsm = pruner.go();
-
     InputParser::parse(argc, argv);
 
     // Help output
@@ -200,8 +198,16 @@ int main(int argc, const char* argv[]) {
         END_TIMER(wd);
     }
 
+    // getfsm
+    auto fsmBuilder = FSMBuilder(width, height);
+    auto fsm = fsmBuilder.build();
+
     // Reading board file
     const auto startBoards(getBoards());
+
+    for (auto board: startBoards) {
+        DEBUG(board.size());
+    }
 
     if (width == height) {
         solve<Board>(solution, width, height, startBoards, fsm);
