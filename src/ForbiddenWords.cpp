@@ -1,9 +1,11 @@
 #include "../include/ForbiddenWords.h"
 #include "../include/BFSDefs.h"
 #include "../include/Util.h"
+#include "../include/Trie.h"
 
 #include <queue>
 #include <unordered_map>
+#include <algorithm>
 
 #define FORB_DEBUG(x)
 
@@ -22,6 +24,7 @@ std::unordered_set<std::string> ForbiddenWords::getForbiddenWords() {
         //break;
     }
     FORB_DEBUG("set union " << uni.size());
+    removeDuplicateSuffixes(uni);
     validateDuplicateStrings(uni);
     FORB_DEBUG("total strings " << uni.size());
 
@@ -67,13 +70,45 @@ std::unordered_set<std::string> ForbiddenWords::getForbiddenWords(BoardRaw start
     return res;
 }
 
+int ForbiddenWords::removeDuplicateSuffixes(std::unordered_set<std::string> &strings) {
+    struct compare {
+        inline bool operator()(const std::string& first,
+                const std::string& second) const {
+            return first.size() < second.size();
+        }
+    };
+    
+    std::unordered_set<std::string> stringsToRemove;
+    std::vector<std::string> vec{strings.begin(), strings.end()};
+    std::sort(vec.begin(), vec.end(), compare());
+    Trie t;
+
+    for (auto s: vec) {
+        if (t.hasAnySuffix(s)) {
+            stringsToRemove.insert(s);
+            continue;
+        }
+        t.insertReverseIntoTrie(s);
+    }
+    DEBUG("Removed " << stringsToRemove.size() << " strings by suffix searching");
+    for (auto string: stringsToRemove) {
+        strings.erase(string);
+    }
+
+    return stringsToRemove.size();
+}
 
 bool ForbiddenWords::validateDuplicateStrings(std::unordered_set<std::string> &strings) {
     auto res = true;
+
+    auto totalStringsRemoved = 0;
     for (const auto &startBoard: getAllStartingBoards()) {
         auto stringsRemoved = validateDuplicateStrings(startBoard, strings);
-        FORB_DEBUG("strings removed " << stringsRemoved);
+        FORB_DEBUG("strings removed by validation " << stringsRemoved);
+        totalStringsRemoved += stringsRemoved;
     }
+    DEBUG("Removed " << totalStringsRemoved << " strings by validation");
+    
     return res;
 }
 

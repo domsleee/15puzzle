@@ -19,8 +19,13 @@ struct Trie {
     std::vector<std::shared_ptr<TrieNode>> allNodes;
 
     void insertIntoTrie(std::string);
-    std::shared_ptr<TrieNode> getNewNode();
+    void insertReverseIntoTrie(std::string);
+
     std::shared_ptr<TrieNode> findNode(const std::string&) const;
+    bool hasAnySuffix(const std::string&) const;
+
+private:
+    std::shared_ptr<TrieNode> getNewNode();
 };
 
 Trie buildTrie(std::unordered_set<std::string> strings); 

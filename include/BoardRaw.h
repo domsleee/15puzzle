@@ -34,19 +34,17 @@ class BoardRaw {
 
     int getDelta(const std::vector<int>& g, int tile, int offset) const;
 
-    struct MoveState {
-        int blank;
-    };
-
 public:
+    typedef int MoveState;
+
     BoardRaw(const std::vector<int>& g, int width, int height);
     std::vector<int> grid;  // Value to position mapping
 
     bool canMove(Direction dir);
     // Should be run only once at start of search
     std::vector<Direction> getMoves() const;
-    MoveState applyMove(Direction dir);
-    void undoMove(const MoveState& prev);
+    BoardRaw::MoveState applyMove(Direction dir);
+    void undoMove(BoardRaw::MoveState prev);
 
     friend std::ostream& operator<<(std::ostream& out, const BoardRaw& board);
     friend bool operator==(const BoardRaw &lhs, const BoardRaw &rhs) {

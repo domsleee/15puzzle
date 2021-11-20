@@ -25,28 +25,13 @@ std::vector<Direction> Idastar<B>::solve(const B& start) {
 
     DEBUG("Limit, Nodes:");
 
-    // Starting moves (for prevMove)
-    auto startMoves = start.getMoves();
-
     while (path.empty()) {
         minCost = INF;
         DEBUG(' ' << limit << ", " << nodes);
-        //DEBUG("FSM STATE " << fsm.state);
-        ///DEBUG("FSM STATE after undo " << fsm.state);
-        fsm.undoMove(0);
-        //assertm(fsm.state == 0, "fsm state is 0");
-
-        for (auto startDir : startMoves) {
-            auto copy = start;
-            copy.applyMove(startDir);
-            fsm.applyMove(static_cast<int>(startDir));
-
-            if (dfs(copy, 1, inverse(startDir))) {
-                path.push_back(startDir);
-                DEBUG("Nodes expanded: " << nodes);
-                fsm.undoMove(0);
-                return path;
-            } else fsm.undoMove(0);
+        auto copy = start;
+        if (dfs(copy, 0)) {
+            DEBUG("Nodes expanded: " << nodes);
+            return path;
         }
 
         limit = minCost;
@@ -56,15 +41,14 @@ std::vector<Direction> Idastar<B>::solve(const B& start) {
 }
 
 template <class B>
-bool Idastar<B>::dfs(B& node, int g, Direction prevMove) {
+bool Idastar<B>::dfs(B& node, int g) {
     auto h = node.getHeuristic();
     auto f = g + h;
 
     if (h == 0) [[unlikely]] {
-            // Found goal state (heuristic = 0)
-            return true;
-        }
-    else if (f > limit) {
+        // Found goal state (heuristic = 0)
+        return true;
+    } else if (f > limit) {
         // Exceeded search depth, store next smallest depth
         if (f < minCost) {
             minCost = f;
@@ -73,19 +57,21 @@ bool Idastar<B>::dfs(B& node, int g, Direction prevMove) {
     }
 
     nodes += 1;
+    auto prevFsm = -1;
+    typename B::MoveState prev;
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; ++i) {
         auto dir = static_cast<Direction>(i);
         if (fsm.canMove(i) && node.canMove(dir)) {
-            auto prev = node.applyMove(dir);
-            auto prevFsm = fsm.applyMove(i);
+            prev = node.applyMove(dir);
+            prevFsm = fsm.applyMove(i);
 
-            if (dfs(node, g + 1, inverse(dir))) {
+            if (dfs(node, g + 1)) {
                 path.push_back(dir);
-                fsm.undoMove(prevFsm);
                 return true;
-            } else fsm.undoMove(prevFsm);
+            }
 
+            fsm.undoMove(prevFsm);
             node.undoMove(prev);
         }
     }

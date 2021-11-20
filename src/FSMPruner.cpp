@@ -12,7 +12,7 @@ void validateIdeas();
 void validateFSM(StateMachine &fsm, std::unordered_set<std::string> &words);
 
 StateMachine FSMPruner::go() {
-    auto maxDepth = 2;
+    auto maxDepth = 15;
     DEBUG("Getting forbidden words with depth: " << maxDepth);
     START_TIMER(forbiddenWords);
     auto forbiddenWords = ForbiddenWords(maxDepth);

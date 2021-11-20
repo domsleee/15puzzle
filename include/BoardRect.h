@@ -35,12 +35,12 @@ class BoardRect {
 
     int getDelta(const std::vector<int>& g, int tile, int offset) const;
 
+public:
     struct MoveState {
         int pattern;
         int blank;
     };
-
-public:
+    
     BoardRect(const std::vector<int>& g, int width, int height);
     std::vector<int> grid;  // Value to position mapping
 

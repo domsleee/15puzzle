@@ -19,7 +19,7 @@ public:
     Idastar(StateMachine &fsm);
 
     std::vector<Direction> solve(const B& start);
-    bool dfs(B& root, int g, Direction prevMove);
+    bool dfs(B& root, int g);
 };
 
 #endif

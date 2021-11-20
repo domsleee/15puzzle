@@ -71,11 +71,11 @@ BoardRaw::MoveState BoardRaw::applyMove(Direction dir) {
     const auto oldBlank = blank;
     blank = newBlank;
 
-    return {oldBlank};
+    return oldBlank;
 }
 
-void BoardRaw::undoMove(const BoardRaw::MoveState& prev) {
-    const auto& [newBlank] = prev;
+void BoardRaw::undoMove(BoardRaw::MoveState prevMoveState) {
+    const auto& newBlank = prevMoveState;
 
     // Value of sliding tile
     const auto tile = getTile(newBlank);

@@ -44,10 +44,31 @@ std::shared_ptr<TrieNode> Trie::findNode(const std::string &str) const {
     return node;
 }
 
+bool Trie::hasAnySuffix(const std::string &s) const {
+    auto node = rootNode;
+    for (int i = s.size()-1; i >= 0; --i) {
+        auto j = static_cast<int>(charToDirection(s[i]));
+        node = node->children[j];
+        if (node == nullptr) return false;
+        else if (node->isWord) return true;
+    }
+    return node->isWord;
+}
+
 void Trie::insertIntoTrie(std::string s) {
     auto node = rootNode;
     for (auto c: s) {
         auto direction = static_cast<int>(charToDirection(c));
+        if (node->children[direction] == nullptr) node->children[direction] = getNewNode();
+        node = node->children[direction];
+    }
+    node->isWord = true;
+}
+
+void Trie::insertReverseIntoTrie(std::string s) {
+    auto node = rootNode;
+    for (int i = s.size()-1; i >= 0; --i) {
+        auto direction = static_cast<int>(charToDirection(s[i]));
         if (node->children[direction] == nullptr) node->children[direction] = getNewNode();
         node = node->children[direction];
     }

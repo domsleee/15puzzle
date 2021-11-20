@@ -38,6 +38,7 @@ class Board {
 
     int getDelta(const std::vector<int>& g, int tile, int offset) const;
 
+public:
     struct MoveState {
         int pattern;
         int mirrPattern;
@@ -45,8 +46,7 @@ class Board {
         int colIndex;
         int blank;
     };
-
-public:
+    
     Board(const std::vector<int>& g, int width, int height);
 
     int getHeuristic() const;

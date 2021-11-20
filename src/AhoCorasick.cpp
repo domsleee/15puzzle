@@ -22,25 +22,21 @@ void StateMachine::undoMove(int state) {
     AHO_DEBUG("undo move " << state);
 }
 
-bool StateMachine::canMove(int i) {
+bool StateMachine::canMove(int i) const {
     auto nextState = findNextStateUnsafe(state, i);
     return !out[nextState];
 }
 
-int StateMachine::findNextState(int state, int i) {
-    auto answer = state;  
-    while (g[answer][i] == -1)
-        answer = f[answer];
-    return g[answer][i];
-}
-
-int StateMachine::findNextStateUnsafe(int state, int i) {
+int StateMachine::findNextStateUnsafe(int state, int i) const {
     return g[state][i];
 }
 
 void StateMachine::calcAndSaveNextState(int state, int i) {
     if (g[state][i] != -1) return;
-    g[state][i] = findNextState(state, i);
+    auto answer = state;  
+    while (g[answer][i] == -1)
+        answer = f[answer];
+    g[state][i] = g[answer][i];
 }
 
 StateMachine BuildFSMFromStrings(const std::unordered_set<std::string> &strings) {
