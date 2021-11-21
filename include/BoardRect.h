@@ -15,8 +15,6 @@
 */
 
 class BoardRect {
-    const int WIDTH;
-    const int HEIGHT;
 
     // {0, -1}, {1, 0}, {0, 1}, {-1, 0}}
     const std::array<int, 4> deltas;  // Blank deltas
@@ -36,6 +34,9 @@ class BoardRect {
     int getDelta(const std::vector<int>& g, int tile, int offset) const;
 
 public:
+    const int WIDTH;
+    const int HEIGHT;
+
     struct MoveState {
         int pattern;
         int blank;
@@ -55,6 +56,8 @@ public:
     friend bool operator==(const BoardRect &lhs, const BoardRect &rhs) {
         return lhs.grid == rhs.grid;
     }
+    
+    std::vector<int> getGrid() const;
 };
 
 #endif  // BOARDRECT_H

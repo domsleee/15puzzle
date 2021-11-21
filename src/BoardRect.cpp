@@ -149,3 +149,5 @@ std::ostream& operator<<(std::ostream& out, const BoardRect& board) {
     }
     return out;
 }
+
+std::vector<int> BoardRect::getGrid() const { return grid; }

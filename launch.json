@@ -1,0 +1,7 @@
+{
+    "name": "Launch",
+    "type": "lldb",
+    "request": "launch",
+    "program": "${workspaceFolder}/<my program>",
+    "args": ["-arg1", "-arg2"],
+}

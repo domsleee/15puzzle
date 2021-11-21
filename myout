@@ -1,0 +1,3 @@
+g++-11  -std=c++17 -Wall -g -m64 -c -o obj/Idastar.o src/Idastar.cpp
+g++-11  -std=c++17 -Wall -g -m64 -c -o obj/IdastarMulti.o src/IdastarMulti.cpp
+g++-11 -m64  -o bin/puzzle obj/AhoCorasick.o obj/BFSDefs.o obj/Board.o obj/BoardRaw.o obj/BoardRect.o obj/Direction.o obj/DisjointDatabase.o obj/FSMBuilder.o obj/ForbiddenWords.o obj/Idastar.o obj/IdastarMulti.o obj/InputParser.o obj/Pattern.o obj/Trie.o obj/Util.o obj/WalkingDistance.o obj/main.o

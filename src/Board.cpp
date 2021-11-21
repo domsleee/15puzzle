@@ -207,3 +207,9 @@ std::ostream& operator<<(std::ostream& out, const Board& board) {
     }
     return out;
 }
+
+std::vector<int> Board::getGrid() const {
+    auto ret = grid;
+    ret[blank] = 0;
+    return ret;
+}

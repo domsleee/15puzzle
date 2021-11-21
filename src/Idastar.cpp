@@ -45,6 +45,8 @@ bool Idastar<B>::dfs(B& node, int g) {
     auto h = node.getHeuristic();
     auto f = g + h;
 
+    //DEBUG_WITH_PID("f: " << f << ", limit: " << limit);
+
     if (h == 0) [[unlikely]] {
         // Found goal state (heuristic = 0)
         return true;
@@ -78,6 +80,19 @@ bool Idastar<B>::dfs(B& node, int g) {
 
     return false;
 }
+
+template <class B>
+void Idastar<B>::clearPathAndSetLimit(int limit) {
+    this->limit = limit;
+    minCost = INF;
+    path.clear();
+}
+
+template <class B>
+long long Idastar<B>::getNodes() { return nodes; }
+
+template <class B>
+int Idastar<B>::getMinCost() { return minCost; }
 
 template class Idastar<Board>;
 template class Idastar<BoardRect>;
