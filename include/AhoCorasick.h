@@ -4,8 +4,8 @@
 #include <string>
 
 struct StateMachine {
-    std::vector<int> out, f;
     std::vector<std::vector<int>> g;
+    std::vector<int> out, f;
     int state;
 
     StateMachine(std::vector<std::vector<int>> &&g, std::vector<int> &&out, std::vector<int> &&f);

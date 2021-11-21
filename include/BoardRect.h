@@ -36,7 +36,7 @@ class BoardRect {
 public:
     const int WIDTH;
     const int HEIGHT;
-
+    
     struct MoveState {
         int pattern;
         int blank;
@@ -57,7 +57,6 @@ public:
         return lhs.grid == rhs.grid;
     }
     
-    std::vector<int> getGrid() const;
 };
 
 #endif  // BOARDRECT_H

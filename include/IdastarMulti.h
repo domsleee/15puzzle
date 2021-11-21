@@ -8,15 +8,15 @@
 template <class B>
 class IdastarMulti {
 private:
-    int limit, nodes, minCost, width, height;
     StateMachine &fsm;
+    int limit, nodes, minCost;
 
     int numWorkers;
     std::vector<std::vector<int>> serverReadPipes, serverWritePipes;
 
     struct InitialNode {
-        InitialNode(B startNode, int g, int fsmState);
-        std::vector<int> grid;
+        InitialNode(B startBoard, int g, int fsmState);
+        B startBoard;
         int g, fsmState;
     };
 

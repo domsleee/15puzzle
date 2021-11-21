@@ -27,8 +27,6 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
     
     nodes = 1;
     limit = start.getHeuristic();
-    width = start.WIDTH;
-    height = start.HEIGHT;
 
     if (limit == 0) {
         DEBUG("Already solved");
@@ -131,14 +129,6 @@ void IdastarMulti<B>::doClient(std::vector<typename IdastarMulti<B>::InitialNode
     auto serverWritePipe = serverWritePipes[0];
     auto serverReadPipe = serverReadPipes[0];
 
-    std::vector<B> initialBoards;
-    for (auto initialNode: initialNodes) {
-        DEBUG("PRINT GRID");
-        for (auto c: initialNode.grid) DEBUG(c);
-        DEBUG("SDLFJ");
-        initialBoards.push_back(B(initialNode.grid, width, height));
-    }
-
     int numNodesToProcess;
     read(serverWritePipe[0], &numNodesToProcess, sizeof(int));
     DEBUG_WITH_PID("numNodesToProcess: " << numNodesToProcess);
@@ -170,8 +160,8 @@ void IdastarMulti<B>::doClient(std::vector<typename IdastarMulti<B>::InitialNode
         idastar.clearPathAndSetLimit(limit);
 
         for (auto nodeId: nodesToProcess) {
-            auto startBoard = initialBoards[nodeId];
             auto initialNode = initialNodes[nodeId];
+            auto startBoard = initialNode.startBoard;
             DEBUG_WITH_PID("processing node " << nodeId << " " << initialNode.fsmState);
             fsm.undoMove(initialNode.fsmState);
             if (idastar.dfs(startBoard, initialNode.g)) {
@@ -198,13 +188,10 @@ void IdastarMulti<B>::doClient(std::vector<typename IdastarMulti<B>::InitialNode
 }
 
 template <class B>
-IdastarMulti<B>::InitialNode::InitialNode(B startNode, int g, int fsmState)
+IdastarMulti<B>::InitialNode::InitialNode(B startBoard, int g, int fsmState)
     : g(g),
-      fsmState(fsmState) {
-        grid = startNode.getGrid();
-        DEBUG("MCSIZE: " << grid.size());
-        for (auto c: grid) DEBUG(c);
-      }
+      fsmState(fsmState),
+      startBoard(startBoard) {}
 
 template <class B>
 std::vector<typename IdastarMulti<B>::InitialNode> IdastarMulti<B>::getInitialNodes(const B& start) {

@@ -49,7 +49,6 @@ public:
     
     Board(const std::vector<int>& g, int width, int height);
 
-    std::vector<int> getGrid() const;
     int getHeuristic() const;
     bool canMove(Direction dir);
     // Should be run only once at start of search
