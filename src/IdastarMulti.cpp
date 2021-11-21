@@ -35,7 +35,7 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
 
     DEBUG("Limit, Nodes:");
 
-    numWorkers = 1;
+    numWorkers = 3;
     serverReadPipes.assign(numWorkers, {0, 0});
     serverWritePipes.assign(numWorkers, {0, 0});
 
@@ -46,18 +46,35 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
     for (auto i = 0; i < numWorkers; ++i) {
         pipe(serverReadPipes[i].data());
         pipe(serverWritePipes[i].data());
+    }
+    for (auto i = 0; i < numWorkers; ++i) {
         pid_t cpid = fork();
         if (cpid == 0) {
-            doClient(initialNodes);
+            doClient(i, initialNodes);
         }
         pids.push_back(cpid);
+        DEBUG("serverReadPipes[" << i << "] = [" << serverReadPipes[i][0] << " , " << serverReadPipes[i][1] << "]");
+        DEBUG("serverWritePipes[" << i << "] = [" << serverWritePipes[i][0] << " , " << serverWritePipes[i][1] << "]");
     }
 
     // server
-    auto initialNodesSize = initialNodes.size();
-    writeAll(&initialNodesSize, sizeof(int));
-    for (auto i = 0; i < initialNodes.size(); ++i) {
-        writeAll(&i, sizeof(int));
+    std::vector<std::vector<int>> initialNodeAllocations(numWorkers, std::vector<int>());
+    for (auto i = 0; i < numWorkers; ++i) {
+        for (auto j = i; j < initialNodes.size(); j += numWorkers) {
+            initialNodeAllocations[i].push_back(j);
+        }
+    }
+
+    for (auto i = 0; i < numWorkers; ++i) {
+        auto allocation = initialNodeAllocations[i];
+        auto allocationSize = allocation.size();
+
+        DEBUG_WITH_PID("worker " << i << " has " << allocationSize);
+        auto serverWritePipe = serverWritePipes[i];
+        write(serverWritePipe[1], &allocationSize, sizeof(int));
+        for (auto nodeId: allocation) {
+            write(serverWritePipe[1], &nodeId, sizeof(int));
+        }
     }
 
     while (path.empty()) {
@@ -80,7 +97,6 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
                 isFound = true;
                 break;
             } else if (result == RESULT_NOFIND) {
-
                 read(serverReadPipe[0], &outNodes[i], sizeof(outNodes[i]));
                 read(serverReadPipe[0], &outMinCost[i], sizeof(outMinCost[i]));
                 
@@ -101,7 +117,13 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
         int status;
         DEBUG("WAITING FOR CHILD " << cpid);
         while (wait(&status) != cpid) {
-            DEBUG(cpid << " status " << status);
+            //DEBUG(cpid << " status " << status);
+            if (status == 10) {
+                DEBUG("child " << cpid << " warning??");
+                break;
+            } else {
+                DEBUG(" status" << status);
+            }
         }
         DEBUG("Child " << cpid << " returned");
     }
@@ -125,13 +147,14 @@ void IdastarMulti<B>::writeAll(const void* ptr, size_t size) {
 }
 
 template <class B>
-void IdastarMulti<B>::doClient(std::vector<typename IdastarMulti<B>::InitialNode> initialNodes) {
-    auto serverWritePipe = serverWritePipes[0];
-    auto serverReadPipe = serverReadPipes[0];
+void IdastarMulti<B>::doClient(int nodeId, std::vector<typename IdastarMulti<B>::InitialNode> initialNodes) {
+    auto serverWritePipe = serverWritePipes[nodeId];
+    auto serverReadPipe = serverReadPipes[nodeId];
 
     int numNodesToProcess;
     read(serverWritePipe[0], &numNodesToProcess, sizeof(int));
     DEBUG_WITH_PID("numNodesToProcess: " << numNodesToProcess);
+    if (numNodesToProcess == 0) exit(0);
     std::vector<int> nodesToProcess(numNodesToProcess, -1);
     for (int i = 0; i < numNodesToProcess; ++i) read(serverWritePipe[0], &nodesToProcess[i], sizeof(int));
 
@@ -181,8 +204,7 @@ void IdastarMulti<B>::doClient(std::vector<typename IdastarMulti<B>::InitialNode
         write(serverReadPipe[1], &nodes, sizeof(nodes));
         write(serverReadPipe[1], &minCost, sizeof(minCost));
     }
-    //close(serverReadPipe[0]);
-   // close(serverReadPipe[1]);
+
     DEBUG_WITH_PID("FINISHED?");
     exit(0);
 }

@@ -1,0 +1,17 @@
+g++-11  -std=c++17 -Wall -O2 -c -o obj/AhoCorasick.o src/AhoCorasick.cpp
+g++-11  -std=c++17 -Wall -O2 -c -o obj/BFSDefs.o src/BFSDefs.cpp
+g++-11  -std=c++17 -Wall -O2 -c -o obj/Board.o src/Board.cpp
+g++-11  -std=c++17 -Wall -O2 -c -o obj/BoardRaw.o src/BoardRaw.cpp
+g++-11  -std=c++17 -Wall -O2 -c -o obj/BoardRect.o src/BoardRect.cpp
+g++-11  -std=c++17 -Wall -O2 -c -o obj/Direction.o src/Direction.cpp
+g++-11  -std=c++17 -Wall -O2 -c -o obj/DisjointDatabase.o src/DisjointDatabase.cpp
+g++-11  -std=c++17 -Wall -O2 -c -o obj/FSMBuilder.o src/FSMBuilder.cpp
+g++-11  -std=c++17 -Wall -O2 -c -o obj/ForbiddenWords.o src/ForbiddenWords.cpp
+g++-11  -std=c++17 -Wall -O2 -c -o obj/Idastar.o src/Idastar.cpp
+g++-11  -std=c++17 -Wall -O2 -c -o obj/IdastarMulti.o src/IdastarMulti.cpp
+g++-11  -std=c++17 -Wall -O2 -c -o obj/InputParser.o src/InputParser.cpp
+g++-11  -std=c++17 -Wall -O2 -c -o obj/Pattern.o src/Pattern.cpp
+g++-11  -std=c++17 -Wall -O2 -c -o obj/Trie.o src/Trie.cpp
+g++-11  -std=c++17 -Wall -O2 -c -o obj/Util.o src/Util.cpp
+g++-11  -std=c++17 -Wall -O2 -c -o obj/WalkingDistance.o src/WalkingDistance.cpp
+g++-11  -std=c++17 -Wall -O2 -c -o obj/main.o src/main.cpp

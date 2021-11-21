@@ -21,7 +21,7 @@ private:
     };
 
     std::vector<InitialNode> getInitialNodes(const B& start);
-    void doClient(std::vector<typename IdastarMulti<B>::InitialNode> initialNodes);
+    void doClient(int nodeId, std::vector<typename IdastarMulti<B>::InitialNode> initialNodes);
     void writeAll(const void* ptr, size_t size);
     void setupWorkers(int numWorkers);
 
