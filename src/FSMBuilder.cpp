@@ -8,7 +8,7 @@ FSMBuilder::FSMBuilder(int width, int height):
     {}
 
 StateMachine FSMBuilder::build() {
-    auto maxDepth = 1;
+    auto maxDepth = 14;
     DEBUG("Getting forbidden words with depth: " << maxDepth);
     START_TIMER(forbiddenWords);
     auto forbiddenWords = ForbiddenWords(maxDepth, width, height);
