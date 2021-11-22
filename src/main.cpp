@@ -111,8 +111,6 @@ bool solvable(const std::vector<int>& solution, int width,
               const std::vector<int>& board) {
     if (width % 2 == 1) {
         // Odd width
-        DEBUG(getInversions(solution) << ' ' << getInversions(board));
-        for (auto i: board) std::cout << " " << i; std::cout << '\n';
         return (getInversions(solution) % 2) == (getInversions(board) % 2);
     }
 

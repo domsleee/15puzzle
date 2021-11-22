@@ -1,6 +1,6 @@
 set -e;
 make -j
-./bin/puzzle -d databases/44-reg -b boards/8-reg
-./bin/puzzle -d databases/555-reg -b boards/15-reg
-# ./bin/puzzle -d databases/6666-reg -b boards/24-reg
+# ./bin/puzzle -d databases/44-reg -b boards/8-reg
+#./bin/puzzle -d databases/555-reg -b boards/15-reg
+./bin/puzzle -d databases/6666-reg -b boards/24-reg
 exit 0

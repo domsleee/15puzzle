@@ -9,6 +9,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <numeric>
+#include <sys/types.h>
+#include <signal.h>
+
 
 constexpr int INF = 1000;
 constexpr int COMMAND_PROCESS = 43;
@@ -25,6 +28,9 @@ template <class B>
 std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
     std::vector<Direction> path;
     
+    START_TIMER(MULTI);
+    START_TIMER(MULTI2);
+    START_TIMER(MULTI3);
     nodes = 1;
     limit = start.getHeuristic();
 
@@ -96,6 +102,7 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
                 int pathSize;
                 read(serverReadPipe[0], &pathSize, sizeof(pathSize));
                 DEBUG("FOUND WITH SIZE " << pathSize);
+                END_TIMER(MULTI3);
                 isFound = true;
                 break;
             } else if (result == RESULT_NOFIND) {
@@ -114,6 +121,12 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
         limit = *std::min_element(outMinCost, outMinCost + numWorkers);
     }
     writeAll(&COMMAND_FINISH, sizeof(COMMAND_FINISH));
+
+    DEBUG("MULTI2");
+    END_TIMER(MULTI2);
+    for (auto cpid: pids) {
+        kill(cpid, SIGKILL);
+    }
 
     for (auto cpid: pids) {
         int status;
@@ -138,6 +151,10 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
         close(pipe[0]);
         close(pipe[1]);
     }
+
+    DEBUG("MULTI timer");
+    END_TIMER(MULTI);
+
     return {};
 }
 
