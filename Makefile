@@ -1,5 +1,12 @@
+#ifndef
+ifdef ENV_DEBUG
+	CONDITIONAL_CXX = -g
+else
+	CONDITIONAL_CXX = -O2
+endif
+
 CXX = g++-11
-CXXFLAGS = -std=c++17 -Wall -O2
+CXXFLAGS = -std=c++17 -Wall $(CONDITIONAL_CXX)
 
 SRC_DIR := src
 OBJ_DIR := obj
@@ -12,7 +19,7 @@ $(BIN_DIR)/puzzle: $(OBJ_FILES)
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(ENV_CXXFLAGS) -c -o $@ $<
 
 clean:
 	- rm -r $(OBJ_DIR)/* $(BIN_DIR)/*
