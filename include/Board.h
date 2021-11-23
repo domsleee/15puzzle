@@ -50,11 +50,12 @@ public:
     Board(const std::vector<int>& g, int width, int height);
 
     int getHeuristic() const;
-    bool canMove(Direction dir);
+    bool canMove(Direction dir) const;
     // Should be run only once at start of search
     std::vector<Direction> getMoves() const;
     MoveState applyMove(Direction dir);
     void undoMove(const MoveState& prev);
+    std::vector<int> getGrid() const;
 
     friend std::ostream& operator<<(std::ostream& out, const Board& board);
 };

@@ -46,11 +46,12 @@ public:
     std::vector<int> grid;  // Value to position mapping
 
     int getHeuristic() const;
-    bool canMove(Direction dir);
+    bool canMove(Direction dir) const;
     // Should be run only once at start of search
     std::vector<Direction> getMoves() const;
     MoveState applyMove(Direction dir);
     void undoMove(const MoveState& prev);
+    std::vector<int> getGrid() const;
 
     friend std::ostream& operator<<(std::ostream& out, const BoardRect& board);
     friend bool operator==(const BoardRect &lhs, const BoardRect &rhs) {

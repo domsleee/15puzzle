@@ -58,7 +58,7 @@ inline int BoardRect::getTile(int posn) const { return grid[posn]; }
 
 inline void BoardRect::setTile(int posn, int tile) { grid[posn] = tile; }
 
-bool BoardRect::canMove(Direction dir) {
+bool BoardRect::canMove(Direction dir) const {
     return canMoveList[blank][static_cast<int>(dir)];
 }
 
@@ -133,6 +133,12 @@ void BoardRect::undoMove(const BoardRect::MoveState& prev) {
 
     // Update blank tile
     blank = newBlank;
+}
+
+std::vector<int> BoardRect::getGrid() const {
+    auto res = grid;
+    res[blank] = 0;
+    return res;
 }
 
 std::ostream& operator<<(std::ostream& out, const BoardRect& board) {

@@ -47,11 +47,18 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
         return path;
     }
 
-    DEBUG("Limit, Nodes:");
+    DEBUG("get initial nodes");
+    START_TIMER(INITIAL_NODES);
+    auto targetWorkers = 8;
+    auto initialNodes = initialNodeGetter.getInitialNodes2(start, targetWorkers);
+    END_TIMER(INITIAL_NODES);
 
-    auto initialNodes = initialNodeGetter.getInitialNodes(start);
+    DEBUG("num initialNodes: " << initialNodes.size());
+    if (initialNodes.size() == 0) {
+        exit(2);
+    }
 
-    numWorkers = std::min(3, (int)initialNodes.size());
+    numWorkers = std::min(targetWorkers, (int)initialNodes.size());
     serverReadPipes.assign(numWorkers, {0, 0});
     serverWritePipes.assign(numWorkers, {0, 0});
 
@@ -72,6 +79,8 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
     }
 
     // server
+    DEBUG("Limit, Nodes:");
+
     std::vector<std::vector<int>> initialNodeAllocations(numWorkers, std::vector<int>());
     for (auto i = 0; i < numWorkers; ++i) {
         for (auto j = i; j < initialNodes.size(); j += numWorkers) {

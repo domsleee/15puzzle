@@ -4,6 +4,9 @@
 #include "../include/BoardRect.h"
 #include "../include/Util.h"
 
+#include <queue>
+#include <unordered_map>
+
 template <class B>
 IdastarMultiInitialNodes<B>::InitialNode::InitialNode(B startBoard, int g, int fsmState, const std::vector<Direction> &path)
     : g(g),
@@ -17,7 +20,7 @@ IdastarMultiInitialNodes<B>::IdastarMultiInitialNodes(StateMachine &fsm)
     {}
 
 template <class B>
-std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> IdastarMultiInitialNodes<B>::getInitialNodes(const B& start) {
+std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> IdastarMultiInitialNodes<B>::getInitialNodes(const B& start, int targetNodes) {
     std::vector<InitialNode> res;
 
     fsm.undoMove(0);
@@ -28,12 +31,85 @@ std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> IdastarMultiIniti
             auto prev = node.applyMove(dir);
             auto prevFsm = fsm.applyMove(i);
 
-            DEBUG("INITIAL DIR " << dir << " i " << i << " INDEX " << res.size() << " FSM " << fsm.state);
+            //DEBUG("INITIAL DIR " << dir << " i " << i << " INDEX " << res.size() << " FSM " << fsm.state);
             res.push_back(InitialNode(node, 1, fsm.state, {dir}));
 
             fsm.undoMove(prevFsm);
             node.undoMove(prev);
         }
+    }
+
+    return res;
+}
+
+template <class B>
+struct BFSNodeWithNumSucc {
+    int fsmState;
+    B node;
+    std::vector<Direction> succ;
+    int g;
+
+    BFSNodeWithNumSucc(StateMachine &fsm, int fsmState, const B &node, int g)
+        : fsmState(fsmState),
+          node(node),
+          g(g) {
+
+        fsm.undoMove(fsmState);
+
+        for (auto i = 0; i < 4; ++i) {
+            auto dir = static_cast<Direction>(i);
+            if (fsm.canMove(i) && node.canMove(dir)) {
+                succ.push_back(dir);
+            }
+        }
+    }
+};
+
+std::string gridHash(const std::vector<int> &grid) {
+    std::string res = "";
+    for (auto i: grid) res.push_back('0' + i);
+    return res;
+}
+
+template <class B>
+std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> IdastarMultiInitialNodes<B>::getInitialNodes2(const B& start, int targetNodes) {
+    std::unordered_set<std::string> seen;
+    std::unordered_map<std::string, std::string> pred;
+
+    std::queue<BFSNodeWithNumSucc<B>> q;
+    q.push({fsm, 0, start, 0});
+
+    while (!q.empty()) {
+        auto top = q.front();
+        //DEBUG(q.size() - 1 + top.succ.size() << " > " << targetNodes << " ?");
+        if ((int)q.size() - 1 + (int)top.succ.size() > targetNodes) {
+            break;
+        }
+
+        q.pop();
+        auto currHash = gridHash(top.node.getGrid());
+        //DEBUG("eval board " << currHash);
+
+        for (auto dir: top.succ) {
+            auto newNode = top.node;
+            newNode.applyMove(dir);
+
+            auto boardStr = gridHash(newNode.getGrid());
+
+            if (seen.count(boardStr)) continue;
+            seen.insert(boardStr);
+            pred[boardStr] = currHash;
+
+            fsm.undoMove(top.fsmState);
+            fsm.applyMove(static_cast<int>(dir));
+            q.push({fsm, fsm.state, newNode, top.g + 1});
+        }
+    }
+
+    std::vector<InitialNode> res;
+    while (!q.empty()) {
+        auto top = q.front(); q.pop();
+        res.push_back({top.node, top.g, top.fsmState, {}});
     }
 
     return res;
