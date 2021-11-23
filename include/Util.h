@@ -13,7 +13,6 @@
 
 #define assertm(expr, msg) assert(((void)(msg), (expr)))
 #define DEBUG(x) std::cout << x << '\n'
-#define DEBUG_WITH_PID(x) (DEBUG(getpid() << ": " << x))
 #define START_TIMER(name) auto timer_##name = std::chrono::steady_clock::now()
 #define END_TIMER(name)                                                      \
     {                                                                        \

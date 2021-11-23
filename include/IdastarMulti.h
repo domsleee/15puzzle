@@ -3,6 +3,7 @@
 
 #include "Direction.h"
 #include "AhoCorasick.h"
+#include "IdastarMultiInitialNodes.h"
 #include <vector>
 
 template <class B>
@@ -21,7 +22,7 @@ private:
     };
 
     std::vector<InitialNode> getInitialNodes(const B& start);
-    void doClient(int nodeId, std::vector<typename IdastarMulti<B>::InitialNode> initialNodes);
+    void doClient(int nodeId, std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> initialNodes);
     void writeAll(const void* ptr, size_t size);
     void setupWorkers(int numWorkers);
 

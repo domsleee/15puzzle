@@ -4,6 +4,8 @@
 #include "../include/BoardRect.h"
 #include "../include/Util.h"
 #include "../include/Idastar.h"
+#include <fcntl.h> // library for fcntl function
+
 
 #include <algorithm>
 #include <stdio.h>
@@ -12,6 +14,13 @@
 #include <sys/types.h>
 #include <signal.h>
 
+#include <chrono>
+#include <thread>
+
+#define DEBUG_MULTI(x) 
+
+#define DEBUG_WITH_PID(x) DEBUG_MULTI(getpid() << ": " << x)
+#define DEBUG_HOST(x) DEBUG_MULTI("HOST: " << x)
 
 constexpr int INF = 1000;
 constexpr int COMMAND_PROCESS = 43;
@@ -27,10 +36,9 @@ IdastarMulti<B>::IdastarMulti(StateMachine &fsm) : fsm(fsm), nodes(0), limit(0),
 template <class B>
 std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
     std::vector<Direction> path;
-    
-    START_TIMER(MULTI);
-    START_TIMER(MULTI2);
-    START_TIMER(MULTI3);
+
+    auto initialNodeGetter = IdastarMultiInitialNodes<B>(fsm);
+
     nodes = 1;
     limit = start.getHeuristic();
 
@@ -41,7 +49,7 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
 
     DEBUG("Limit, Nodes:");
 
-    auto initialNodes = getInitialNodes(start);
+    auto initialNodes = initialNodeGetter.getInitialNodes(start);
 
     numWorkers = std::min(3, (int)initialNodes.size());
     serverReadPipes.assign(numWorkers, {0, 0});
@@ -59,8 +67,8 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
             doClient(i, initialNodes);
         }
         pids.push_back(cpid);
-        DEBUG("serverReadPipes[" << i << "] = [" << serverReadPipes[i][0] << " , " << serverReadPipes[i][1] << "]");
-        DEBUG("serverWritePipes[" << i << "] = [" << serverWritePipes[i][0] << " , " << serverWritePipes[i][1] << "]");
+        // DEBUG("serverReadPipes[" << i << "] = [" << serverReadPipes[i][0] << " , " << serverReadPipes[i][1] << "]");
+        // DEBUG("serverWritePipes[" << i << "] = [" << serverWritePipes[i][0] << " , " << serverWritePipes[i][1] << "]");
     }
 
     // server
@@ -89,30 +97,58 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
         writeAll(&COMMAND_PROCESS, sizeof(COMMAND_PROCESS));
         writeAll(&limit, sizeof(limit));
 
+        // set all to non-blocking
+        for (auto i = 0; i < numWorkers; ++i) {
+            if (fcntl(serverReadPipes[i][0], F_SETFL, O_NONBLOCK) < 0) exit(2);
+        }
+
         long long outNodes[numWorkers];
         int result, outMinCost[numWorkers];
         bool isFound = false;
 
-        for (auto i = 0; i < numWorkers; ++i) {
-            if (initialNodeAllocations[i].size() == 0) continue;
+        int msg = 0;
+        while (true) {
+            DEBUG_HOST("received " << msg << "/" << numWorkers << " " << (100 * msg) / numWorkers << "%");
+            for (auto i = 0; i < numWorkers; ++i) {
+                if (initialNodeAllocations[i].size() == 0) continue;
 
-            auto serverReadPipe = serverReadPipes[i];
-            read(serverReadPipe[0], &result, sizeof(result));
-            if (result == RESULT_FOUND) {
-                int pathSize;
-                read(serverReadPipe[0], &pathSize, sizeof(pathSize));
-                DEBUG("FOUND WITH SIZE " << pathSize);
-                END_TIMER(MULTI3);
-                isFound = true;
-                break;
-            } else if (result == RESULT_NOFIND) {
-                read(serverReadPipe[0], &outNodes[i], sizeof(outNodes[i]));
-                read(serverReadPipe[0], &outMinCost[i], sizeof(outMinCost[i]));
-                
-                DEBUG("output " << outNodes[i] << " " << outMinCost[i]);
-            } else {
-                assertm("unrecognised result.", 0);
+                auto serverReadPipe = serverReadPipes[i];
+                if (read(serverReadPipe[0], &result, sizeof(result)) == -1) continue;
+                //if (fcntl(serverReadPipe[0], F_SETFL, fcntl(serverReadPipe[0], F_GETFL) & (~O_NONBLOCK)) < 0) exit(2);
+
+                if (result == RESULT_FOUND) {
+                    int dfsPathSize, nodeId;
+                    while (read(serverReadPipe[0], &nodeId, sizeof(nodeId)) == -1);
+                    while (read(serverReadPipe[0], &dfsPathSize, sizeof(dfsPathSize)) == -1);
+                    DEBUG_HOST("FOUND WITH NODE " << nodeId << " DFS SIZE " << dfsPathSize);
+                    auto initialPathSize = initialNodes[nodeId].path.size();
+                    path.resize(dfsPathSize + initialPathSize);
+
+                    for (auto j = 0; j < dfsPathSize; ++j) {
+                        while (read(serverReadPipe[0], &path[0+j], sizeof(Direction)) == -1);
+                        //DEBUG("PATH " << path[0+j]);
+                    }
+
+                    for (auto j = 0; j < initialPathSize; ++j) {
+                        path[dfsPathSize+j] = initialNodes[nodeId].path[j];
+                    }
+
+
+                    isFound = true;
+                    break;
+                } else if (result == RESULT_NOFIND) {
+                    while (read(serverReadPipe[0], &outNodes[i], sizeof(outNodes[i])) == -1);
+                    while (read(serverReadPipe[0], &outMinCost[i], sizeof(outMinCost[i])) == -1);
+                    
+                    msg++;
+                    DEBUG_HOST("output " << outNodes[i] << " " << outMinCost[i]);
+                } else {
+                    assertm("unrecognised result.", 0);
+                }
             }
+
+            if (isFound || msg == numWorkers) break;
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
 
         if (isFound) break;
@@ -122,25 +158,23 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
     }
     writeAll(&COMMAND_FINISH, sizeof(COMMAND_FINISH));
 
-    DEBUG("MULTI2");
-    END_TIMER(MULTI2);
     for (auto cpid: pids) {
         kill(cpid, SIGKILL);
     }
 
     for (auto cpid: pids) {
         int status;
-        DEBUG("WAITING FOR CHILD " << cpid);
+        DEBUG_MULTI("WAITING FOR CHILD " << cpid);
         while (waitpid(cpid, &status, 0) != cpid) {
             //DEBUG(cpid << " status " << status);
             if (status == 10) {
                 //DEBUG("child " << cpid << " warning??");
                 //break;
             } else {
-                DEBUG(" status" << status);
+                DEBUG_MULTI(" status" << status);
             }
         }
-        DEBUG("Child " << cpid << " returned");
+        DEBUG_MULTI("Child " << cpid << " returned");
     }
 
     for (auto pipe: serverWritePipes) {
@@ -152,10 +186,7 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
         close(pipe[1]);
     }
 
-    DEBUG("MULTI timer");
-    END_TIMER(MULTI);
-
-    return {};
+    return path;
 }
 
 template <class B>
@@ -166,7 +197,7 @@ void IdastarMulti<B>::writeAll(const void* ptr, size_t size) {
 }
 
 template <class B>
-void IdastarMulti<B>::doClient(int nodeId, std::vector<typename IdastarMulti<B>::InitialNode> initialNodes) {
+void IdastarMulti<B>::doClient(int nodeId, std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> initialNodes) {
     auto serverWritePipe = serverWritePipes[nodeId];
     auto serverReadPipe = serverReadPipes[nodeId];
 
@@ -182,9 +213,7 @@ void IdastarMulti<B>::doClient(int nodeId, std::vector<typename IdastarMulti<B>:
     for (int i = 0; i < numNodesToProcess; ++i) read(serverWritePipe[0], &nodesToProcess[i], sizeof(int));
 
     DEBUG_WITH_PID("read all nodestoprocess");
-    auto fsmClone = fsm;
-    Idastar<B> idastar(fsmClone);
-    fsm.undoMove(0);
+    Idastar<B> idastar(fsm);
 
     int command, limit = 0;
     while (true) { // read until EOF
@@ -202,18 +231,26 @@ void IdastarMulti<B>::doClient(int nodeId, std::vector<typename IdastarMulti<B>:
 
         // process
         DEBUG_WITH_PID("read limit as " << limit);
-        idastar.clearPathAndSetLimit(limit);
 
         for (auto nodeId: nodesToProcess) {
+            idastar.clearPathAndSetLimit(limit);
+
             auto initialNode = initialNodes[nodeId];
             auto startBoard = initialNode.startBoard;
             DEBUG_WITH_PID("processing node " << nodeId << " " << initialNode.fsmState);
             fsm.undoMove(initialNode.fsmState);
+
             if (idastar.dfs(startBoard, initialNode.g)) {
                 DEBUG_WITH_PID("FOUND PATH " << idastar.path.size());
                 write(serverReadPipe[1], &RESULT_FOUND, sizeof(int));
-                auto pathSize = idastar.path.size();
+                write(serverReadPipe[1], &nodeId, sizeof(nodeId));
+
+                int pathSize = idastar.path.size();
                 write(serverReadPipe[1], &pathSize, sizeof(pathSize));
+                for (auto dir: idastar.path) {
+                    //DEBUG_WITH_PID("path " << dir);
+                    write(serverReadPipe[1], &dir, sizeof(dir));
+                }
                 break;
             } else {
                 DEBUG_WITH_PID("dfs return false");
@@ -229,33 +266,6 @@ void IdastarMulti<B>::doClient(int nodeId, std::vector<typename IdastarMulti<B>:
 
     DEBUG_WITH_PID("FINISHED");
     exit(0);
-}
-
-template <class B>
-IdastarMulti<B>::InitialNode::InitialNode(B startBoard, int g, int fsmState)
-    : g(g),
-      fsmState(fsmState),
-      startBoard(startBoard) {}
-
-template <class B>
-std::vector<typename IdastarMulti<B>::InitialNode> IdastarMulti<B>::getInitialNodes(const B& start) {
-    std::vector<InitialNode> res;
-
-    for (int i = 0; i < 4; ++i) {
-        auto node = start;
-        auto dir = static_cast<Direction>(i);
-        if (fsm.canMove(i) && node.canMove(dir)) {
-            auto prev = node.applyMove(dir);
-            auto prevFsm = fsm.applyMove(i);
-            
-            res.push_back(InitialNode(node, 1, fsm.state));
-
-            fsm.undoMove(prevFsm);
-            node.undoMove(prev);
-        }
-    }
-
-    return res;
 }
 
 template class IdastarMulti<Board>;

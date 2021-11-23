@@ -3,16 +3,16 @@
 std::ostream& operator<<(std::ostream& out, const Direction& dir) {
     switch (dir) {
         case Direction::U:
-            out << "D";
-            break;
-        case Direction::R:
-            out << "L";
-            break;
-        case Direction::D:
             out << "U";
             break;
-        default:
+        case Direction::R:
             out << "R";
+            break;
+        case Direction::D:
+            out << "D";
+            break;
+        default:
+            out << "L";
             break;
     }
     return out;
