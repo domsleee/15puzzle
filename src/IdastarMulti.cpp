@@ -164,7 +164,7 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
 
         if (isFound) break;
 
-        nodes = 1 + std::accumulate(outNodes, outNodes + numWorkers, 0);
+        nodes = 1 + std::accumulate(outNodes, outNodes + numWorkers, 0LL);
         limit = *std::min_element(outMinCost, outMinCost + numWorkers);
     }
     writeAll(&COMMAND_FINISH, sizeof(COMMAND_FINISH));

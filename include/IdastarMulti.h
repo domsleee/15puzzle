@@ -10,7 +10,8 @@ template <class B>
 class IdastarMulti {
 private:
     StateMachine &fsm;
-    int limit, nodes, minCost;
+    int limit, minCost;
+    long long nodes;
 
     int numWorkers;
     std::vector<std::vector<int>> serverReadPipes, serverWritePipes;
