@@ -17,7 +17,7 @@
 #include <chrono>
 #include <thread>
 
-#define DEBUG_MULTI(x) 
+#define DEBUG_MULTI(x)
 
 #define DEBUG_WITH_PID(x) DEBUG_MULTI(getpid() << ": " << x)
 #define DEBUG_HOST(x) DEBUG_MULTI("HOST: " << x)
@@ -49,7 +49,7 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
 
     DEBUG("get initial nodes");
     START_TIMER(INITIAL_NODES);
-    auto targetWorkers = 8;
+    auto targetWorkers = 63;
     auto initialNodes = initialNodeGetter.getInitialNodes2(start, targetWorkers);
     END_TIMER(INITIAL_NODES);
 
@@ -67,6 +67,13 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
     for (auto i = 0; i < numWorkers; ++i) {
         pipe(serverReadPipes[i].data());
         pipe(serverWritePipes[i].data());
+    }
+    // set all to non-blocking
+    for (auto i = 0; i < numWorkers; ++i) {
+        if (fcntl(serverReadPipes[i][0], F_SETFL, O_NONBLOCK) < 0) {
+            DEBUG_HOST("failed to set non blocking for pipe");
+            exit(2);
+        }
     }
     for (auto i = 0; i < numWorkers; ++i) {
         pid_t cpid = fork();
@@ -105,11 +112,6 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
         DEBUG(' ' << limit << ", " << nodes);
         writeAll(&COMMAND_PROCESS, sizeof(COMMAND_PROCESS));
         writeAll(&limit, sizeof(limit));
-
-        // set all to non-blocking
-        for (auto i = 0; i < numWorkers; ++i) {
-            if (fcntl(serverReadPipes[i][0], F_SETFL, O_NONBLOCK) < 0) exit(2);
-        }
 
         long long outNodes[numWorkers];
         int result, outMinCost[numWorkers];

@@ -6,7 +6,7 @@ else
 endif
 
 CXX = g++-11
-CXXFLAGS = -std=c++17 -Wall $(CONDITIONAL_CXX)
+CXXFLAGS = -std=c++17 -Wall $(CONDITIONAL_CXX) -m64
 
 SRC_DIR := src
 OBJ_DIR := obj

@@ -74,7 +74,7 @@ std::string gridHash(const std::vector<int> &grid) {
 template <class B>
 std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> IdastarMultiInitialNodes<B>::getInitialNodes2(const B& start, int targetNodes) {
     std::unordered_set<std::string> seen;
-    std::unordered_map<std::string, std::string> pred;
+    std::unordered_map<std::string, std::pair<Direction, std::string>> pred;
 
     std::queue<BFSNodeWithNumSucc<B>> q;
     q.push({fsm, 0, start, 0});
@@ -98,7 +98,7 @@ std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> IdastarMultiIniti
 
             if (seen.count(boardStr)) continue;
             seen.insert(boardStr);
-            pred[boardStr] = currHash;
+            pred[boardStr] = {dir, currHash};
 
             fsm.undoMove(top.fsmState);
             fsm.applyMove(static_cast<int>(dir));
@@ -109,7 +109,16 @@ std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> IdastarMultiIniti
     std::vector<InitialNode> res;
     while (!q.empty()) {
         auto top = q.front(); q.pop();
-        res.push_back({top.node, top.g, top.fsmState, {}});
+        std::vector<Direction> path;
+        auto node = top.node;
+        auto nodeHash = gridHash(node.getGrid());
+        while (true) {
+            if (pred.count(nodeHash) == 0) break;
+            auto [predDir, predHash] = pred[nodeHash];
+            path.push_back(predDir);
+            nodeHash = predHash;
+        }
+        res.push_back({top.node, top.g, top.fsmState, path});
     }
 
     return res;
