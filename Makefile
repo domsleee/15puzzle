@@ -2,11 +2,11 @@
 ifdef ENV_DEBUG
 	CONDITIONAL_CXX = -g
 else
-	CONDITIONAL_CXX = -O2
+	CONDITIONAL_CXX = -O3
 endif
 
 CXX = g++-11
-CXXFLAGS = -std=c++17 -Wall $(CONDITIONAL_CXX)
+CXXFLAGS = -std=c++17 -Wall $(CONDITIONAL_CXX) -m64
 
 SRC_DIR := src
 OBJ_DIR := obj
