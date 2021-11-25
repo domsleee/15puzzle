@@ -2,7 +2,7 @@
 ifdef ENV_DEBUG
 	CONDITIONAL_CXX = -g
 else
-	CONDITIONAL_CXX = -O2
+	CONDITIONAL_CXX = -O3
 endif
 
 CXX = g++-11
