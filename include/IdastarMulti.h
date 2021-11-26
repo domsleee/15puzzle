@@ -15,6 +15,7 @@ private:
 
     int numWorkers;
     std::vector<std::vector<int>> serverReadPipes, serverWritePipes;
+    std::vector<int> sharedPipe;
 
     struct InitialNode {
         InitialNode(B startBoard, int g, int fsmState);
