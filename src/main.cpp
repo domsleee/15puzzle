@@ -199,7 +199,12 @@ int main(int argc, const char* argv[]) {
     }
 
     // getfsm
-    auto fsmBuilder = FSMBuilder(width, height);
+    auto fsmDepth = 14;
+    if (InputParser::fsmDepthExists()) {
+        fsmDepth = InputParser::getFSMDepth();
+    }
+
+    auto fsmBuilder = FSMBuilder(width, height, fsmDepth);
     auto fsm = fsmBuilder.build();
 
     // Reading board file

@@ -32,6 +32,10 @@ bool InputParser::boardExists() {
     return optionExists("-b") || optionExists("--board");
 }
 
+bool InputParser::fsmDepthExists() {
+    return optionExists("-f") || optionExists("--fsmDepth");
+}
+
 bool InputParser::showInteractive() {
     return optionExists("-i") || optionExists("--interactive");
 }
@@ -54,6 +58,11 @@ std::string InputParser::getBoard() {
         return "";
     }
     return args[0];
+}
+
+int InputParser::getFSMDepth() {
+    auto args = getMultipleArgs({"-f", "--fsmDepth"});
+    return std::stoi(args[0]);
 }
 
 bool InputParser::optionExists(const std::string& option) {

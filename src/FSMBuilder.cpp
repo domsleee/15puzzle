@@ -2,13 +2,13 @@
 #include "../include/ForbiddenWords.h"
 #include "../include/Util.h"
 
-FSMBuilder::FSMBuilder(int width, int height):
+FSMBuilder::FSMBuilder(int width, int height, int maxDepth):
     width(width),
-    height(height)
+    height(height),
+    maxDepth(maxDepth)
     {}
 
 StateMachine FSMBuilder::build() {
-    auto maxDepth = 14;
     DEBUG("Getting forbidden words with depth: " << maxDepth);
     START_TIMER(forbiddenWords);
     auto forbiddenWords = ForbiddenWords(maxDepth, width, height);
