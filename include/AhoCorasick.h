@@ -6,9 +6,9 @@
 struct StateMachine {
     std::vector<int> out, f;
     std::vector<std::vector<int>> g;
-    int state;
+    int state, states;
 
-    StateMachine(std::vector<std::vector<int>> &&g, std::vector<int> &&out, std::vector<int> &&f);
+    StateMachine(std::vector<std::vector<int>> &&g, std::vector<int> &&out, std::vector<int> &&f, int states);
 
     int applyMove(int i);
     void undoMove(int prev);

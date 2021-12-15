@@ -4,11 +4,12 @@
 
 #define AHO_DEBUG(x)
 
-StateMachine::StateMachine(std::vector<std::vector<int>> &&g, std::vector<int> &&out, std::vector<int> &&f)
+StateMachine::StateMachine(std::vector<std::vector<int>> &&g, std::vector<int> &&out, std::vector<int> &&f, int states)
     : g(g),
       out(out),
       f(f),
-      state(0) {}
+      state(0),
+      states(states) {}
 
 int StateMachine::applyMove(int i) {
     auto oldState = state;
@@ -95,7 +96,7 @@ StateMachine BuildFSMFromStrings(const std::unordered_set<std::string> &strings)
         AHO_DEBUG("f[" << i << "] = " << f[i]);
     }
 
-    auto fsm = StateMachine(std::move(g), std::move(out), std::move(f));
+    auto fsm = StateMachine(std::move(g), std::move(out), std::move(f), states);
     for (int state = 0; state < states; ++state) {
         for (int i = 0; i < 4; ++i) {
             fsm.calcAndSaveNextState(state, i);

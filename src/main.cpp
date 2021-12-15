@@ -210,10 +210,6 @@ int main(int argc, const char* argv[]) {
     // Reading board file
     const auto startBoards(getBoards());
 
-    for (auto board: startBoards) {
-        DEBUG(board.size());
-    }
-
     if (width == height) {
         solve<Board>(solution, width, height, startBoards, fsm);
     } else {

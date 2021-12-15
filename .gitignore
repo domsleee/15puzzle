@@ -13,3 +13,4 @@ databases/*.dat
 misc/
 build/
 compile_commands.json
+scripts/out

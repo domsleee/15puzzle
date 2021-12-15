@@ -1,0 +1,6 @@
+#!/bin/bash
+cd ..
+for counter in {14..14}; do
+    echo $counter
+    ./bin/puzzle -d databases/555-reg -b boards/15-reg --fsmDepth $counter
+done
