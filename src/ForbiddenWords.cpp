@@ -170,7 +170,16 @@ int ForbiddenWords::validateDuplicateStrings(BoardRaw startBoard, std::unordered
     std::unordered_set<std::string> stringsToRemove; 
     for (auto [board, dist]: shortestPathFromStrings) {
         if (shortestPathFromBfs.count(board) == 0 || shortestPathFromBfs[board] > dist) {
+            // if there is 1, we remove the first (it is not a duplicate operator string)
+            // if there is 2, we remove only one of them
+            // if there is 3, we remove second and third
+            // 17: 298... 290
+            bool firstWillBeDuplicate = boardToStrings[board].size() > 1 && false;
+            if (firstWillBeDuplicate) {
+                //DEBUG("WOW"); exit(1);
+            }
             for (auto s: boardToStrings[board]) {
+                if (firstWillBeDuplicate) { firstWillBeDuplicate = false; continue; }
                 stringsToRemove.insert(s);
             }
             continue;
