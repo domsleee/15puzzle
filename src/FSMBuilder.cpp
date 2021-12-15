@@ -41,26 +41,31 @@ StateMachine dfsOrderFSM(StateMachine &fsm) {
         }
     }
 
-    DEBUG(dfsOrder.size() << " VS " << numStates);
     assertm(dfsOrder.size() == numStates, "dfs");
 
     // dfsOrder = [1, 3, 0, 2]
     // dfsOrderInv = [2, 0, 3, 1]
+    out = fsm.out;
+    g = fsm.g;
+
     std::vector<int> dfsOrderInv(numStates);
     for (int i = 0; i < numStates; ++i) {
         dfsOrderInv[dfsOrder[i]] = i;
     }
 
     for (int i = 0; i < numStates; ++i) {
-        g[i] = g[dfsOrderInv[i]];
+        g[i] = fsm.g[dfsOrder[i]];
+        out[i] = fsm.out[dfsOrder[i]];
     }
 
     for (int i = 0; i < numStates; ++i) {
-        out[i] = dfsOrderInv[out[i]];
         for (int j = 0; j < 4; ++j) {
             g[i][j] = dfsOrderInv[g[i][j]];
         }
     }
+
+    // 59...
+
     return StateMachine(std::move(g), std::move(out), std::move(f), numStates);
 }
 
@@ -83,4 +88,19 @@ StateMachine FSMBuilder::build() {
     END_TIMER(FSM2);
 
     return fsm2;
+
+    //dfs order = 35.049
+    //normal = 35.164
+
+    // 17
+    // normal=33.71
+    // dfs order=33.26
+
+    // 18
+    // normal=34.038, 33.686
+    // dfs order=33.328, 32.828
+
+    // 19
+    // normal=38.562
+    // dfs order=36.65
 }
