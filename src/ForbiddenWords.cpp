@@ -2,6 +2,7 @@
 #include "../include/BFSDefs.h"
 #include "../include/Util.h"
 #include "../include/Trie.h"
+#include "../include/ForbiddenWordsFast.h"
 
 #include <queue>
 #include <unordered_map>
@@ -27,6 +28,8 @@ std::unordered_set<std::string> ForbiddenWords::getForbiddenWords() {
     }
     FORB_DEBUG("set union " << uni.size());
     removeDuplicateSuffixes(uni);
+    //ForbiddenWordsFast f(0, width, height);
+    //f.validateDuplicateStrings(uni);
     validateDuplicateStrings(uni);
     FORB_DEBUG("total strings " << uni.size());
 
@@ -73,16 +76,9 @@ std::unordered_set<std::string> ForbiddenWords::getForbiddenWords(BoardRaw start
 }
 
 int ForbiddenWords::removeDuplicateSuffixes(std::unordered_set<std::string> &strings) {
-    struct compare {
-        inline bool operator()(const std::string& first,
-                const std::string& second) const {
-            return first.size() < second.size();
-        }
-    };
-    
     std::unordered_set<std::string> stringsToRemove;
     std::vector<std::string> vec{strings.begin(), strings.end()};
-    std::sort(vec.begin(), vec.end(), compare());
+    std::sort(vec.begin(), vec.end(), StringVectorCompare());
     Trie t;
 
     for (auto s: vec) {
@@ -174,14 +170,18 @@ int ForbiddenWords::validateDuplicateStrings(BoardRaw startBoard, std::unordered
             // if there is 2, we remove only one of them
             // if there is 3, we remove second and third
             // 17: 298... 290
-            bool firstWillBeDuplicate = boardToStrings[board].size() > 1 && false;
-            if (firstWillBeDuplicate) {
-                //DEBUG("WOW"); exit(1);
-            }
+            std::vector<std::string> strings = {};
+            auto shortestPathLength = shortestPathFromBfs.count(board) ? shortestPathFromBfs.at(board) : -1;
+
             for (auto s: boardToStrings[board]) {
-                if (firstWillBeDuplicate) { firstWillBeDuplicate = false; continue; }
-                stringsToRemove.insert(s);
+                if (shortestPathLength == -1 || s.size() > shortestPathLength) {
+                    strings.push_back(s);
+                }
             }
+            if (strings.size() == 0) continue;
+
+            std::sort(strings.begin(), strings.end(), StringVectorCompare());
+            stringsToRemove.insert(strings[0]);
             continue;
         }
     }

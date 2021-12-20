@@ -50,6 +50,9 @@ public:
     friend bool operator==(const BoardRaw &lhs, const BoardRaw &rhs) {
         return lhs.grid == rhs.grid;
     }
+
+    int getBlankTile() const { return blank; }
+    int getWidth() const { return WIDTH; }
 };
 
 

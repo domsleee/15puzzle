@@ -1,5 +1,6 @@
 #include "../include/FSMBuilder.h"
 #include "../include/ForbiddenWords.h"
+#include "../include/ForbiddenWordsFast.h"
 #include "../include/Util.h"
 
 #include <stack>
@@ -70,24 +71,29 @@ StateMachine dfsOrderFSM(StateMachine &fsm) {
 }
 
 StateMachine FSMBuilder::build() {
-    DEBUG("Getting forbidden words with depth: " << maxDepth);
     START_TIMER(forbiddenWords);
-    auto forbiddenWords = ForbiddenWords(maxDepth, width, height);
+    //auto forbiddenWords = ForbiddenWords(14, width, height);
+    auto forbiddenWords = ForbiddenWordsFast(8e8, width, height);
+    forbiddenWords.printMessage();
     auto strings = forbiddenWords.getForbiddenWords();
     DEBUG("found " << strings.size() << " forbidden strings");
     END_TIMER(forbiddenWords);
 
-    DEBUG("Building FSM from strings");
+    for (auto s: strings) {
+        //DEBUG(s);
+    }
+
+    DEBUG("Building FSM from " << strings.size() << " strings");
     START_TIMER(FSM);
     auto fsm = BuildFSMFromStrings(strings);
     END_TIMER(FSM);
 
     DEBUG("re-order FSM");
     START_TIMER(FSM2);
-    auto fsm2 = dfsOrderFSM(fsm);
+    //auto fsm2 = dfsOrderFSM(fsm);
     END_TIMER(FSM2);
 
-    return fsm2;
+    return fsm;
 
     //dfs order = 35.049
     //normal = 35.164
