@@ -11,6 +11,7 @@
 
 #include "Direction.h"
 #include "BoardRaw.h"
+#include "Memory.h"
 
 #define MAX_LL std::numeric_limits<long long>::max()
 

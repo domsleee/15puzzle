@@ -14,8 +14,6 @@
 #include <execution>
 #include <unordered_set>
 
-#include<mach/mach.h>
-
 #define FORB2_DEBUG(x)
 
 void debugInsertString(
@@ -134,21 +132,6 @@ void maybeInsertString(
     res.insert(s);
 }
 
-long long totalMemoryUsed() {
-    struct task_basic_info t_info;
-    mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
-
-    if (KERN_SUCCESS != task_info(mach_task_self(),
-                                TASK_BASIC_INFO, (task_info_t)&t_info,
-                                &t_info_count))
-    {
-        DEBUG("??");
-        exit(1);
-    }
-
-    return t_info.resident_size;
-}
-
 std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords(BoardRaw startBoard) {
     std::unordered_set<std::string> res;
     std::unordered_map<BoardRep, BoardRep> pred;
@@ -162,7 +145,7 @@ std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords(BoardRaw s
 
     while (!q.empty()) {
         ++it;
-        if (it > itLimit || totalMemoryUsed() > memLimit) {
+        if (it > itLimit || getCurrentRSS() > memLimit) {
             DEBUG("gave up after " << it << " iterations");
             break;
         }
