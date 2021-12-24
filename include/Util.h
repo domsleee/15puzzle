@@ -6,9 +6,13 @@
 #include <chrono>
 #include <iostream>
 #include <vector>
+#include <unordered_set>
+#include <string>
 
 #include "Direction.h"
 #include "BoardRaw.h"
+
+#define MAX_LL std::numeric_limits<long long>::max()
 
 #define assertm(expr, msg) assert(((void)(msg), (expr)))
 #define DEBUG(x) std::cout << x << '\n'
@@ -31,5 +35,15 @@ char directionToChar(Direction move);
 Direction charToDirection(char move);
 int charToInt(char move);
 std::vector<BoardRaw> getAllStartingBoards(int width, int height);
+void writeWordsToFile(std::string filename, const std::unordered_set<std::string> &words);
+bool readWordsFromFile(std::string filename, std::unordered_set<std::string> &words);
+
+struct StringVectorCompare {
+    inline bool operator()(const std::string& first,
+            const std::string& second) const {
+        return first.size() < second.size()
+            || (first.size() == second.size() && first < second);
+    }
+};
 
 #endif  // UTIL_H

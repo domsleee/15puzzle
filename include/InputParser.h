@@ -18,6 +18,8 @@ public:
     static std::string getDatabase();
     static std::string getBoard();
     static int getFSMDepth();
+    static long long getFSMMemLimit();
+    static long long getFSMItLimit();
 
 private:
     static std::unordered_map<std::string, std::vector<std::string>> tokens;

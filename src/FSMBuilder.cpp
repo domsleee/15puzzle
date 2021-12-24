@@ -2,15 +2,40 @@
 #include "../include/ForbiddenWords.h"
 #include "../include/ForbiddenWordsFast.h"
 #include "../include/Util.h"
+#include "../include/InputParser.h"
 
 #include <stack>
 #include <unordered_set>
+
+StateMachine dfsOrderFSM(StateMachine &fsm);
 
 FSMBuilder::FSMBuilder(int width, int height, int maxDepth):
     width(width),
     height(height),
     maxDepth(maxDepth)
     {}
+
+StateMachine FSMBuilder::build() {
+    START_TIMER(forbiddenWords);
+    //auto forbiddenWords = ForbiddenWords(14, width, height);
+    auto forbiddenWords = ForbiddenWordsFast(InputParser::getFSMMemLimit(), InputParser::getFSMItLimit(),  width, height);
+    forbiddenWords.printMessage();
+    auto strings = forbiddenWords.getForbiddenWords();
+    DEBUG("found " << strings.size() << " forbidden strings");
+    END_TIMER(forbiddenWords);
+
+    DEBUG("Building FSM from " << strings.size() << " strings");
+    START_TIMER(FSM);
+    auto fsm = BuildFSMFromStrings(strings);
+    END_TIMER(FSM);
+
+    DEBUG("re-order FSM");
+    START_TIMER(FSM2);
+    //auto fsm2 = dfsOrderFSM(fsm);
+    END_TIMER(FSM2);
+
+    return fsm;
+}
 
 
 StateMachine dfsOrderFSM(StateMachine &fsm) {
@@ -68,45 +93,4 @@ StateMachine dfsOrderFSM(StateMachine &fsm) {
     // 59...
 
     return StateMachine(std::move(g), std::move(out), std::move(f), numStates);
-}
-
-StateMachine FSMBuilder::build() {
-    START_TIMER(forbiddenWords);
-    //auto forbiddenWords = ForbiddenWords(14, width, height);
-    auto forbiddenWords = ForbiddenWordsFast(8e8, width, height);
-    forbiddenWords.printMessage();
-    auto strings = forbiddenWords.getForbiddenWords();
-    DEBUG("found " << strings.size() << " forbidden strings");
-    END_TIMER(forbiddenWords);
-
-    for (auto s: strings) {
-        //DEBUG(s);
-    }
-
-    DEBUG("Building FSM from " << strings.size() << " strings");
-    START_TIMER(FSM);
-    auto fsm = BuildFSMFromStrings(strings);
-    END_TIMER(FSM);
-
-    DEBUG("re-order FSM");
-    START_TIMER(FSM2);
-    //auto fsm2 = dfsOrderFSM(fsm);
-    END_TIMER(FSM2);
-
-    return fsm;
-
-    //dfs order = 35.049
-    //normal = 35.164
-
-    // 17
-    // normal=33.71
-    // dfs order=33.26
-
-    // 18
-    // normal=34.038, 33.686
-    // dfs order=33.328, 32.828
-
-    // 19
-    // normal=38.562
-    // dfs order=36.65
 }

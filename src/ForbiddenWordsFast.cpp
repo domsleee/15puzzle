@@ -16,7 +16,7 @@
 
 #include<mach/mach.h>
 
-#define FORB2_DEBUG(x) DEBUG(x)
+#define FORB2_DEBUG(x)
 
 void debugInsertString(
     const std::string &s,
@@ -26,36 +26,58 @@ void debugInsertString(
     const std::unordered_map<BoardRep, BoardRep> &pred);
 
 
-ForbiddenWordsFast::ForbiddenWordsFast(long long qsizeLimit, int width, int height)
-    : qsizeLimit(qsizeLimit),
+ForbiddenWordsFast::ForbiddenWordsFast(long long memLimit, long long itLimit, int width, int height)
+    : memLimit(memLimit),
+      itLimit(itLimit),
       width(width),
       height(height)
     {
     }
 
+std::string ForbiddenWordsFast::getLLStr(long long val) const {
+    return val == MAX_LL ? "MAX" : std::to_string(val);
+}
+
+
 std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords() {
-    auto startingBoards = getAllStartingBoards(width, height);
-
-    std::vector<std::unordered_set<std::string>> res(startingBoards.size());
-    std::transform(
-        std::execution::seq,
-        startingBoards.cbegin(),
-        startingBoards.cend(),
-        res.begin(),
-        [=](const BoardRaw &startBoard) -> std::unordered_set<std::string> {
-            return getForbiddenWords(startBoard);
-        }
-    );
-
     std::unordered_set<std::string> uni;
-    for (const auto &sett: res) {
-        for (const auto &s: sett) uni.insert(s);
+    auto memLimitStr = getMemLimitStr();
+    auto itLimitStr = getItLimitStr();
+    auto strFile = "databases/fsm-" + memLimitStr + "-" + itLimitStr;
+    auto beforeValidationFile = "databases/fsm-" + memLimitStr + "-" + itLimitStr + "-beforevalidation";
+
+    if (readWordsFromFile(strFile, uni)) {
+        DEBUG("Loaded FSM from file");
+        return uni;
+    } else if (readWordsFromFile(beforeValidationFile, uni))
+    {
+        // do nothing
     }
+    else {
+        auto startingBoards = getAllStartingBoards(width, height);
+        std::vector<std::unordered_set<std::string>> res(startingBoards.size());
+        std::transform(
+            std::execution::seq,
+            startingBoards.cbegin(),
+            startingBoards.cend(),
+            res.begin(),
+            [=](const BoardRaw &startBoard) -> std::unordered_set<std::string> {
+                return getForbiddenWords(startBoard);
+            }
+        );
+        for (const auto &sett: res) {
+            for (const auto &s: sett) uni.insert(s);
+        }
+    }
+
+    
     FORB2_DEBUG("set union " << uni.size());
     auto forb = ForbiddenWords(0, 0, 0); 
     forb.removeDuplicateSuffixes(uni);
+    writeWordsToFile(beforeValidationFile, uni);
     validateDuplicateStrings(uni);
     FORB2_DEBUG("total strings " << uni.size());
+    writeWordsToFile(strFile, uni);
     return uni;
 }
 
@@ -140,7 +162,7 @@ std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords(BoardRaw s
 
     while (!q.empty()) {
         ++it;
-        if (it > 1000000 /*1765125/4/* totalMemoryUsed() > qsizeLimit*/) {
+        if (it > itLimit || totalMemoryUsed() > memLimit) {
             DEBUG("gave up after " << it << " iterations");
             break;
         }
@@ -185,7 +207,7 @@ void ForbiddenWordsFast::validateDuplicateStrings(std::unordered_set<std::string
         for (const auto &validationRet: vec) {
             auto stringToRemove = validationRet.stringsLessThanLength[0];
             if (strings.count(stringToRemove) == 0) continue;
-            DEBUG("remove " << validationRet.blankLocation << ", minLength "
+            FORB2_DEBUG("remove " << validationRet.blankLocation << ", minLength "
                 << validationRet.minBfsLength
                 << " #strings: " << validationRet.stringsLessThanLength.size()
                 << ", string: " << stringToRemove);
@@ -342,14 +364,14 @@ void debugInsertString(
         auto startBoard = startBoardRep.toBoard();
         auto a = getCriticalPoints(s), b = getCriticalPoints(otherString);
 
-        if (isSubRange(a, b) || isSubRange(b, a)) {
+        if (false && (isSubRange(a, b) || isSubRange(b, a))) {
             // one is a subset of the other
         } else {
-            if (s.size() != otherString.size()) return;
-            DEBUG("NOT SUBRANGE!");
-            DEBUG(startBoardRep.toBoard().getBlankTile() << ":" << s << " vs " << otherString);
-            for (auto a1: a) std::cout << a1 << ' '; std::cout << '\n';
-            for (auto b1: b) std::cout << b1 << ' '; std::cout << '\n';
+            //if (s.size() != otherString.size()) return;
+            FORB2_DEBUG("NOT SUBRANGE!");
+            FORB2_DEBUG(startBoardRep.toBoard().getBlankTile() << ":" << s << " vs " << otherString);
+            //for (auto a1: a) std::cout << a1 << ' '; std::cout << '\n';
+            //for (auto b1: b) std::cout << b1 << ' '; std::cout << '\n';
         }
     }
 }

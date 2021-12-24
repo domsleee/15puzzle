@@ -61,7 +61,7 @@ StateMachine BuildFSMFromStrings(const std::unordered_set<std::string> &strings)
         out[currentState] |= 1;
         i++;
     }
-    DEBUG("STATES: " << states << ", numNodes " << numNodes);
+    AHO_DEBUG("STATES: " << states << ", numNodes " << numNodes);
     for (auto i = 0; i < 4; ++i) {
         if (g[0][i] == -1) g[0][i] = 0;
     }

@@ -1,6 +1,8 @@
 #include "../include/Util.h"
 
 #include <algorithm>
+#include <fstream>
+#include <filesystem>
 
 #include "../include/Direction.h"
 #include "../include/BoardRaw.h"
@@ -96,4 +98,21 @@ std::vector<BoardRaw> getAllStartingBoards(int width, int height) {
     }
 
     return res;
+}
+
+void writeWordsToFile(std::string filename, const std::unordered_set<std::string> &words) {
+    std::ofstream fout{filename};
+    std::vector<std::string> vec(words.begin(), words.end());
+    std::sort(vec.begin(), vec.end(), StringVectorCompare());
+    for (auto s: vec) fout << s << '\n';
+}
+
+bool readWordsFromFile(std::string filename, std::unordered_set<std::string> &words) {
+    if (!std::filesystem::exists(filename)) {
+        return false;
+    }
+    std::ifstream fin{filename};
+    std::string s;
+    while (fin >> s) words.insert(s);
+    return true;
 }

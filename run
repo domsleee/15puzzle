@@ -1,5 +1,5 @@
 set -e;
 make -j
-./bin/puzzle -d databases/555-reg -b boards/15-reg --fsmDepth 17
+./bin/puzzle -d databases/555-reg -b boards/15-reg --fsmMemLimit 80
 # ./bin/puzzle -d databases/6666-reg -b boards/24-reg
 exit 0
