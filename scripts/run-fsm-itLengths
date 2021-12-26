@@ -1,0 +1,8 @@
+#!/bin/bash
+DATABASE=databases/fsm-MAX-500000000.bak
+cd ..
+for numWords in {25000...1000000...25000}; do
+    fsmFile=databases/fsmdb-${numWords}
+    head ${DATABASE} -${numWords} > ${fsmFile}
+    ./bin/puzzle -d databases/555-reg -b boards/15-reg --fsmFile ${fsmFile}
+done

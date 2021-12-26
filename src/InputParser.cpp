@@ -37,6 +37,10 @@ bool InputParser::fsmDepthExists() {
     return optionExists("-f") || optionExists("--fsmDepth");
 }
 
+bool InputParser::fsmFileExists() {
+    return optionExists("--fsmFile");
+}
+
 bool InputParser::showInteractive() {
     return optionExists("-i") || optionExists("--interactive");
 }
@@ -80,6 +84,11 @@ long long InputParser::getFSMItLimit() {
         return MAX_LL;
     }
     return std::stoll(args[0]);
+}
+
+std::string InputParser::getFSMFile() {
+    auto args = getMultipleArgs({"--fsmFile"});
+    return args[0];
 }
 
 bool InputParser::optionExists(const std::string& option) {
