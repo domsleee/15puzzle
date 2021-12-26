@@ -53,6 +53,7 @@ public:
 
     int getBlankTile() const { return blank; }
     int getWidth() const { return WIDTH; }
+    int getMiddleTile() const { return (WIDTH*HEIGHT) / 2; }
 };
 
 

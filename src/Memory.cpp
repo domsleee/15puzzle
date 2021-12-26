@@ -120,3 +120,10 @@ size_t getCurrentRSS( )
     return (size_t)0L;          /* Unsupported. */
 #endif
 }
+
+#include <proc/readproc.h>
+unsigned long getVirtualUsage() {
+    struct proc_t usage;
+    look_up_our_self(&usage);
+    return usage.vsize;
+}

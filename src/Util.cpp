@@ -101,6 +101,10 @@ std::vector<BoardRaw> getAllStartingBoards(int width, int height) {
 }
 
 void writeWordsToFile(std::string filename, const std::unordered_set<std::string> &words) {
+    if (std::filesystem::exists(filename)) {
+        DEBUG("refused to write words to file that already existed " << filename);
+        return;
+    }
     std::ofstream fout{filename};
     std::vector<std::string> vec(words.begin(), words.end());
     std::sort(vec.begin(), vec.end(), StringVectorCompare());

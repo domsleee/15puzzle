@@ -50,24 +50,26 @@ std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords() {
     } else if (readWordsFromFile(beforeValidationFile, uni))
     {
         // do nothing
+        DEBUG("Loaded FSM before validation from file");
     }
     else {
         auto startingBoards = getAllStartingBoards(width, height);
-        std::vector<std::unordered_set<std::string>> res(startingBoards.size());
-        std::transform(
+        uni = std::transform_reduce(
             std::execution::seq,
             startingBoards.cbegin(),
             startingBoards.cend(),
-            res.begin(),
+            std::unordered_set<std::string>(),
+            [=](std::unordered_set<std::string> a, const std::unordered_set<std::string> &b) -> std::unordered_set<std::string> {
+                for (const auto &s: b) a.insert(s);
+                auto forb = ForbiddenWords(0, 0, 0); 
+                forb.removeDuplicateSuffixes(a);
+                return a;
+            },
             [=](const BoardRaw &startBoard) -> std::unordered_set<std::string> {
                 return getForbiddenWords(startBoard);
             }
         );
-        for (const auto &sett: res) {
-            for (const auto &s: sett) uni.insert(s);
-        }
     }
-
     
     FORB2_DEBUG("set union " << uni.size());
     auto forb = ForbiddenWords(0, 0, 0); 
@@ -145,10 +147,11 @@ std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords(BoardRaw s
 
     while (!q.empty()) {
         ++it;
-        if (it > itLimit || getCurrentRSS() > memLimit) {
+        if (it > itLimit || (memLimit != MAX_LL && it % 100 == 0 && getVirtualUsage() > memLimit)) {
             DEBUG("gave up after " << it << " iterations");
             break;
         }
+        //if (it % 100 && getVirtualUsage() % 10000 < 100) DEBUG(getVirtualUsage() << " VS " << memLimit);
         auto front = q.front(); q.pop();
         auto board = front.toBoard();
         for (int i = 0; i < 4; i++) {
@@ -207,25 +210,14 @@ void ForbiddenWordsFast::validateDuplicateStrings(std::unordered_set<std::string
 
 std::vector<ValidationRet> ForbiddenWordsFast::validateDuplicateStrings(BoardRaw startBoard, const std::unordered_set<std::string> &strings) {
     std::unordered_map<BoardRep, int> shortestPathFromStrings;
-    std::unordered_map<BoardRep, std::vector<std::string>> boardToStrings;
-
     auto maxDepth = 0;
     for (auto s: strings) {
         maxDepth = std::max(maxDepth, static_cast<int>(s.size()));
-        auto board = getBoardFromString(startBoard, s);
-        if (board == nullptr) continue;
-        auto boardRep = BoardRep{*board}; // 6766239
-    
-        int shortestPath = s.size();
-        if (shortestPathFromStrings.count(boardRep) == 0 || shortestPath < shortestPathFromStrings[boardRep]) {
-            shortestPathFromStrings[boardRep] = shortestPath;
-        }
-        if (boardToStrings.count(boardRep) == 0) {
-            boardToStrings[boardRep] = {};
-        }
-        boardToStrings[boardRep].push_back(s);
     }
+
+    DEBUG("BUILDING FSM for validation...");
     auto fsm = BuildFSMFromStrings(strings);
+    DEBUG("FSM Built");
 
     auto q = std::queue<std::pair<int, BoardRep>>();
     std::unordered_map<BoardRep, int> shortestPathFromBfs;
@@ -234,6 +226,8 @@ std::vector<ValidationRet> ForbiddenWordsFast::validateDuplicateStrings(BoardRaw
     shortestPathFromBfs[startBoardRep] = 0;
     q.push({0, startBoardRep});
 
+    DEBUG("search begin");
+    auto maxKnownDepth = -1;
     while (!q.empty()) {
         auto [lastFSM, frontBoardRep] = q.front(); q.pop();
         auto board = frontBoardRep.toBoard();
@@ -252,11 +246,34 @@ std::vector<ValidationRet> ForbiddenWordsFast::validateDuplicateStrings(BoardRaw
                 if (newDist >= maxDepth) {
                     continue;
                 }
+                if (newDist > maxKnownDepth) {
+                    maxKnownDepth = newDist;
+                    DEBUG("new depth " << maxKnownDepth);
+                }
 
                 fsm.applyMove(i);
                 q.push({fsm.state, newBoardRep});
             }
         }
+    }
+
+    DEBUG("SEARCH FINISHED");
+
+    std::unordered_map<BoardRep, std::vector<std::string>> boardToStrings;
+    for (auto s: strings) {
+        maxDepth = std::max(maxDepth, static_cast<int>(s.size()));
+        auto board = getBoardFromString(startBoard, s);
+        if (board == nullptr) continue;
+        auto boardRep = BoardRep{*board}; // 6766239
+    
+        int shortestPath = s.size();
+        if (shortestPathFromStrings.count(boardRep) == 0 || shortestPath < shortestPathFromStrings[boardRep]) {
+            shortestPathFromStrings[boardRep] = shortestPath;
+        }
+        if (boardToStrings.count(boardRep) == 0) {
+            boardToStrings[boardRep] = {};
+        }
+        boardToStrings[boardRep].push_back(s);
     }
 
     std::vector<ValidationRet> ret;
