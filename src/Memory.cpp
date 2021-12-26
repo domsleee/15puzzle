@@ -20,8 +20,10 @@
 #include <fcntl.h>
 #include <procfs.h>
 
+
 #elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
 #include <stdio.h>
+#include <proc/readproc.h>
 
 #endif
 
@@ -121,9 +123,13 @@ size_t getCurrentRSS( )
 #endif
 }
 
-#include <proc/readproc.h>
+
 unsigned long getVirtualUsage() {
+#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
     struct proc_t usage;
     look_up_our_self(&usage);
     return usage.vsize;
+#else
+    return 0;
+#endif
 }
