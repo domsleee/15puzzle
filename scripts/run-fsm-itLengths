@@ -1,8 +1,12 @@
 #!/bin/bash
-DATABASE=databases/fsm-MAX-500000000.bak
+DATABASE=databases/fsm-MAX-50000000.bak
 cd ..
-for numWords in {25000...1000000...25000}; do
-    fsmFile=databases/fsmdb-${numWords}
-    head ${DATABASE} -${numWords} > ${fsmFile}
-    ./bin/puzzle -d databases/555-reg -b boards/15-reg --fsmFile ${fsmFile}
+for trial in {1..5}; do
+    for numWords in {25000..200000..25000}; do
+        fsmFile=databases/fsmdb-${numWords}
+        head ${DATABASE} -n ${numWords} > ${fsmFile}
+        ID=fsm-${numWords}-${trial}
+        echo DOING ${ID}
+        ./bin/puzzle -d databases/555-reg -b boards/15-reg --fsmFile ${fsmFile} > results/fsmItLengths/${ID}
+    done
 done

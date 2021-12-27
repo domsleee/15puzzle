@@ -6,6 +6,7 @@
 #include "../include/Util.h"
 #include "../include/Trie.h"
 #include "../include/AhoCorasick.h"
+#include "../include/InputParser.h"
 
 
 #include <queue>
@@ -39,13 +40,23 @@ std::string ForbiddenWordsFast::getLLStr(long long val) const {
 
 std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords() {
     std::unordered_set<std::string> uni;
+    if (InputParser::fsmFileExists()) {
+        auto strFile = InputParser::getFSMFile();
+        if (!readWordsFromFile(strFile, uni)) {
+            DEBUG("could not read from file " << strFile);
+            exit(1);
+        };
+        DEBUG("Loaded FSM from file " << strFile << " #words: " << uni.size());
+        return uni;
+    }
+
     auto memLimitStr = getMemLimitStr();
     auto itLimitStr = getItLimitStr();
     auto strFile = "databases/fsm-" + memLimitStr + "-" + itLimitStr;
     auto beforeValidationFile = "databases/fsm-" + memLimitStr + "-" + itLimitStr + "-beforevalidation";
 
     if (readWordsFromFile(strFile, uni)) {
-        DEBUG("Loaded FSM from file");
+        DEBUG("Loaded FSM from file " << strFile << " #words: " << uni.size());
         return uni;
     } else if (readWordsFromFile(beforeValidationFile, uni))
     {
