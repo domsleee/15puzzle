@@ -71,8 +71,10 @@ StateMachine dfsOrderFSM(StateMachine &fsm) {
 
     // dfsOrder = [1, 3, 0, 2]
     // dfsOrderInv = [2, 0, 3, 1]
-    out = fsm.out;
-    g = fsm.g;
+    for (auto i = 0; i < out.size(); ++i) {
+        out[i] = fsm.outAndG[i].first;
+        g[i] = fsm.outAndG[i].second;
+    }
 
     std::vector<int> dfsOrderInv(numStates);
     for (int i = 0; i < numStates; ++i) {
@@ -80,8 +82,8 @@ StateMachine dfsOrderFSM(StateMachine &fsm) {
     }
 
     for (int i = 0; i < numStates; ++i) {
-        g[i] = fsm.g[dfsOrder[i]];
-        out[i] = fsm.out[dfsOrder[i]];
+        g[i] = fsm.outAndG[dfsOrder[i]].second;
+        out[i] = fsm.outAndG[dfsOrder[i]].first;
     }
 
     for (int i = 0; i < numStates; ++i) {
