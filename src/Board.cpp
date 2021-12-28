@@ -83,6 +83,18 @@ inline int Board::getDelta(const std::vector<int>& g, int tile,
     // Which pattern the sliding tile is in
     const auto index = DisjointDatabase::where[tile];
     const auto delta = DisjointDatabase::tileDeltas[tile];
+
+    int res = delta;
+    for (auto i = offset + 1; i < offset + WIDTH + 1; ++i) {
+        auto skip = g[i];
+        if (DisjointDatabase::where[skip] != index) {
+            res += delta;
+        } else if (skip > tile) {
+            res += delta + DisjointDatabase::tileDeltas[skip];
+        }
+    }
+    return res;
+
     return std::transform_reduce(
         std::execution::seq, g.cbegin() + offset + 1,
         g.cbegin() + offset + WIDTH + 1, delta, std::plus<>(),
