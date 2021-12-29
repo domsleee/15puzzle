@@ -3,13 +3,16 @@
 #include <unordered_set>
 #include <string>
 
+#include "Util.h"
+
 #define AHO_DEBUG(x)
 #define G(i) outAndG[i].second
 
 struct StateMachine {
-    std::vector<int> f;
-    int state, states;
-    std::vector<std::pair<int, std::vector<int>>> outAndG;
+    const std::vector<int> f;
+    int state;
+    int states;
+    std::vector<std::pair<int, std::array<int, 4>>> outAndG;
 
     StateMachine(std::vector<std::vector<int>> &&g, std::vector<int> &&out, std::vector<int> &&f, int states);
 

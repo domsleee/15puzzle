@@ -7,10 +7,11 @@ StateMachine::StateMachine(std::vector<std::vector<int>> &&g, std::vector<int> &
     : f(f),
       state(0),
       states(states) {
+        f.resize(states);
         outAndG.assign(states, {0, {}});
         for (auto i = 0; i < states; ++i) {
             outAndG[i].first = out[i];
-            G(i) = std::move(g[i]);
+            for (auto j = 0; j < 4; ++j) G(i)[j] = g[i][j];
         }
       }
 
@@ -43,7 +44,7 @@ StateMachine BuildFSMFromStrings(const std::unordered_set<std::string> &strings)
         out[currentState] |= 1;
         i++;
     }
-    DEBUG("STATES: " << states << ", numNodes " << numNodes);
+    DEBUG("STATES: " << states);
     for (auto i = 0; i < 4; ++i) {
         if (g[0][i] == -1) g[0][i] = 0;
     }

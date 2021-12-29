@@ -66,7 +66,7 @@ std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords() {
     else {
         auto startingBoards = getAllStartingBoards(width, height);
         uni = std::transform_reduce(
-            std::execution::seq,
+            std::execution::par_unseq,
             startingBoards.cbegin(),
             startingBoards.cend(),
             std::unordered_set<std::string>(),
@@ -202,7 +202,7 @@ void ForbiddenWordsFast::validateDuplicateStrings(std::unordered_set<std::string
     auto stringSize = strings.size();
     for (const auto &vec: res) {
         for (const auto &validationRet: vec) {
-            auto stringToRemove = validationRet.stringsLessThanLength[0];
+            auto stringToRemove = validationRet.stringsLessThanLength[validationRet.stringsLessThanLength.size()-1];
             if (strings.count(stringToRemove) == 0) continue;
             FORB2_DEBUG("remove " << validationRet.blankLocation << ", minLength "
                 << validationRet.minBfsLength
@@ -293,7 +293,7 @@ std::vector<ValidationRet> ForbiddenWordsFast::validateDuplicateStrings(BoardRaw
         if (shortestPathLength == -1 || shortestPathLength > dist) {
             std::vector<std::string> strings = {};
             for (auto s: boardToStrings[board]) {
-                if (shortestPathLength == -1 || s.size() > shortestPathLength) {
+                if (shortestPathLength == -1 || s.size() <= shortestPathLength) {
                     strings.push_back(s);
                 }
             }

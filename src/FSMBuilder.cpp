@@ -5,9 +5,10 @@
 #include "../include/InputParser.h"
 
 #include <stack>
+#include <queue>
 #include <unordered_set>
 
-StateMachine dfsOrderFSM(StateMachine &fsm);
+StateMachine dfsOrderFSM(StateMachine fsm);
 
 FSMBuilder::FSMBuilder(int width, int height, int maxDepth):
     width(width),
@@ -31,68 +32,75 @@ StateMachine FSMBuilder::build() {
 
     DEBUG("re-order FSM");
     START_TIMER(FSM2);
-    //auto fsm2 = dfsOrderFSM(fsm);
+    auto fsm2 = dfsOrderFSM(fsm);
     END_TIMER(FSM2);
 
-    return fsm;
+    return fsm2;
 }
 
 
-StateMachine dfsOrderFSM(StateMachine &fsm) {
-    int numStates = fsm.states;
-    std::vector<int> out(numStates, 0), f(numStates, -1);
-    std::vector<std::vector<int>> g(numStates, std::vector<int>(4, -1));
+StateMachine dfsOrderFSM(StateMachine fsm) {
 
     // out, g
-    std::stack<int> st;
+    std::queue<int> st;
     std::unordered_set<int> seen;
     std::vector<int> dfsOrder;
 
     st.push(0);
     seen.insert(0);
-    dfsOrder.push_back(0);
 
     while (!st.empty()) {
-        auto t = st.top(); st.pop();
-    
+        auto t = st.front(); st.pop();
+        dfsOrder.push_back(t);
+
         for (int i = 0; i < 4; ++i) {
-            //if (!fsm.canMove(i)) continue;
             fsm.undoMove(t);
+            if (!fsm.canMove(i)) continue;
             fsm.applyMove(i);
             auto nxState = fsm.state;
             if (seen.count(nxState)) continue;
             seen.insert(nxState);
             st.push(nxState);
-            dfsOrder.push_back(nxState);
         }
     }
+    auto newNumStates = dfsOrder.size();
 
-    assertm(dfsOrder.size() == numStates, "dfs");
+    int numStates = fsm.states;
+    std::vector<int> out(newNumStates+1, 0), f(newNumStates+1, -1);
+    std::vector<std::vector<int>> g(newNumStates+1, std::vector<int>(4, -1));
+    //DEBUG("DFS ORDER " << dfsOrder.size() << ", numStates:" << numStates);
+    //assertm(dfsOrder.size() == numStates, "dfs");
+    std::unordered_set<int> prunedNodes = {};
+    for (auto i = 0; i < numStates; ++i) prunedNodes.insert(i);
+    for (auto node: dfsOrder) prunedNodes.erase(node);
+    for (auto i = 0; i < 4; ++i) g[newNumStates][i] = 0;
+    out[newNumStates] = 1;
 
     // dfsOrder = [1, 3, 0, 2]
     // dfsOrderInv = [2, 0, 3, 1]
-    for (auto i = 0; i < out.size(); ++i) {
+    for (auto i = 0; i < newNumStates; ++i) {
         out[i] = fsm.outAndG[i].first;
-        g[i] = fsm.outAndG[i].second;
+        for (int j = 0; j < 4; ++j) g[i][j] = fsm.outAndG[dfsOrder[i]].second[j];
     }
 
     std::vector<int> dfsOrderInv(numStates);
-    for (int i = 0; i < numStates; ++i) {
+    for (int i = 0; i < newNumStates; ++i) {
         dfsOrderInv[dfsOrder[i]] = i;
     }
 
-    for (int i = 0; i < numStates; ++i) {
-        g[i] = fsm.outAndG[dfsOrder[i]].second;
+    for (int i = 0; i < newNumStates; ++i) {
+        for (int j = 0; j < 4; ++j) g[i][j] = fsm.outAndG[dfsOrder[i]].second[j];
         out[i] = fsm.outAndG[dfsOrder[i]].first;
     }
 
-    for (int i = 0; i < numStates; ++i) {
+    for (int i = 0; i < newNumStates; ++i) {
         for (int j = 0; j < 4; ++j) {
-            g[i][j] = dfsOrderInv[g[i][j]];
+            if (prunedNodes.count(g[i][j])) {
+                g[i][j] = newNumStates;
+            } else g[i][j] = dfsOrderInv[g[i][j]];
         }
     }
-
     // 59...
-
-    return StateMachine(std::move(g), std::move(out), std::move(f), numStates);
+    DEBUG("Rebuilt with " << newNumStates << " STATES");
+    return StateMachine(std::move(g), std::move(out), std::move(f), newNumStates + 1);
 }
