@@ -8,7 +8,7 @@
 #include <queue>
 #include <unordered_set>
 
-StateMachine dfsOrderFSM(StateMachine fsm);
+StateMachineSimple dfsOrderFSM(StateMachine fsm);
 
 FSMBuilder::FSMBuilder(int width, int height, int maxDepth):
     width(width),
@@ -16,7 +16,7 @@ FSMBuilder::FSMBuilder(int width, int height, int maxDepth):
     maxDepth(maxDepth)
     {}
 
-StateMachine FSMBuilder::build() {
+StateMachineSimple FSMBuilder::build() {
     START_TIMER(forbiddenWords);
     //auto forbiddenWords = ForbiddenWords(14, width, height);
     auto forbiddenWords = ForbiddenWordsFast(InputParser::getFSMMemLimit(), InputParser::getFSMItLimit(),  width, height);
@@ -39,7 +39,7 @@ StateMachine FSMBuilder::build() {
 }
 
 
-StateMachine dfsOrderFSM(StateMachine fsm) {
+StateMachineSimple dfsOrderFSM(StateMachine fsm) {
 
     // out, g
     std::queue<int> st;
@@ -66,15 +66,13 @@ StateMachine dfsOrderFSM(StateMachine fsm) {
     auto newNumStates = dfsOrder.size();
 
     int numStates = fsm.states;
-    std::vector<int> out(newNumStates+1, 0), f(newNumStates+1, -1);
-    std::vector<std::vector<int>> g(newNumStates+1, std::vector<int>(4, -1));
+    std::vector<int> out(newNumStates, 0), f(newNumStates, -1);
+    std::vector<std::array<int, 4>> g(newNumStates, std::array<int, 4>());
     //DEBUG("DFS ORDER " << dfsOrder.size() << ", numStates:" << numStates);
     //assertm(dfsOrder.size() == numStates, "dfs");
     std::unordered_set<int> prunedNodes = {};
     for (auto i = 0; i < numStates; ++i) prunedNodes.insert(i);
     for (auto node: dfsOrder) prunedNodes.erase(node);
-    for (auto i = 0; i < 4; ++i) g[newNumStates][i] = 0;
-    out[newNumStates] = 1;
 
     // dfsOrder = [1, 3, 0, 2]
     // dfsOrderInv = [2, 0, 3, 1]
@@ -96,11 +94,12 @@ StateMachine dfsOrderFSM(StateMachine fsm) {
     for (int i = 0; i < newNumStates; ++i) {
         for (int j = 0; j < 4; ++j) {
             if (prunedNodes.count(g[i][j])) {
-                g[i][j] = newNumStates;
+                g[i][j] = WORD_STATE;
             } else g[i][j] = dfsOrderInv[g[i][j]];
         }
     }
     // 59...
     DEBUG("Rebuilt with " << newNumStates << " STATES");
-    return StateMachine(std::move(g), std::move(out), std::move(f), newNumStates + 1);
+    //exit(0);
+    return StateMachineSimple(std::move(g));
 }

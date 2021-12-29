@@ -7,7 +7,7 @@
 constexpr int INF = 1000;
 
 template <class B>
-Idastar<B>::Idastar(StateMachine &fsm) : path({}), minCost(INF), limit(0), nodes(0), fsm(fsm) {}
+Idastar<B>::Idastar(StateMachineSimple &fsm) : path({}), minCost(INF), limit(0), nodes(0), fsm(fsm) {}
 
 template <class B>
 std::vector<Direction> Idastar<B>::solve(const B& start) {

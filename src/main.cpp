@@ -122,7 +122,7 @@ bool solvable(const std::vector<int>& solution, int width,
 
 template <class B>
 void solve(const std::vector<int>& solution, int width, int height,
-           const std::vector<std::vector<int>>& grids, StateMachine &fsm) {
+           const std::vector<std::vector<int>>& grids, StateMachineSimple &fsm) {
     // Setup search
     Idastar<B> search(fsm);
 
