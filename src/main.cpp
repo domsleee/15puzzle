@@ -15,6 +15,7 @@
 #include "../include/Util.h"
 #include "../include/WalkingDistance.h"
 #include "../include/FSMBuilder.h"
+#include "../include/Tests.h"
 
 // Dynamic board size
 // Dynamic database pattern
@@ -167,6 +168,7 @@ void solve(const std::vector<int>& solution, int width, int height,
 }
 
 int main(int argc, const char* argv[]) {
+    //return runTests();
     InputParser::parse(argc, argv);
 
     // Help output

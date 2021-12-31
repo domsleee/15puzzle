@@ -52,8 +52,8 @@ std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords() {
 
     auto memLimitStr = getMemLimitStr();
     auto itLimitStr = getItLimitStr();
-    auto strFile = "databases/fsm-" + memLimitStr + "-" + itLimitStr;
-    auto beforeValidationFile = "databases/fsm-" + memLimitStr + "-" + itLimitStr + "-beforevalidation";
+    auto strFile = "databases/fsm-" + std::to_string(width) + "x" + std::to_string(height) + "-" + memLimitStr + "-" + itLimitStr;
+    auto beforeValidationFile = strFile + "-beforevalidation";
 
     if (readWordsFromFile(strFile, uni)) {
         DEBUG("Loaded FSM from file " << strFile << " #words: " << uni.size());
@@ -66,7 +66,7 @@ std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords() {
     else {
         auto startingBoards = getAllStartingBoards(width, height);
         uni = std::transform_reduce(
-            std::execution::par_unseq,
+            std::execution::seq,
             startingBoards.cbegin(),
             startingBoards.cend(),
             std::unordered_set<std::string>(),
@@ -194,7 +194,7 @@ void ForbiddenWordsFast::validateDuplicateStrings(std::unordered_set<std::string
         startingBoards.cbegin(),
         startingBoards.cend(),
         res.begin(),
-        [=](const BoardRaw &startBoard) -> std::vector<ValidationRet> {
+        [&](const BoardRaw &startBoard) -> std::vector<ValidationRet> {
             return validateDuplicateStrings(startBoard, strings);
         }
     );
@@ -218,9 +218,8 @@ void ForbiddenWordsFast::validateDuplicateStrings(std::unordered_set<std::string
     return;
 }
 
-
+long long skipCount = 0, skipLen = 0;
 std::vector<ValidationRet> ForbiddenWordsFast::validateDuplicateStrings(BoardRaw startBoard, const std::unordered_set<std::string> &strings) {
-    std::unordered_map<BoardRep, int> shortestPathFromStrings;
     auto maxDepth = 0;
     for (auto s: strings) {
         maxDepth = std::max(maxDepth, static_cast<int>(s.size()));
@@ -271,6 +270,7 @@ std::vector<ValidationRet> ForbiddenWordsFast::validateDuplicateStrings(BoardRaw
     DEBUG("SEARCH FINISHED");
 
     std::unordered_map<BoardRep, std::vector<std::string>> boardToStrings;
+    std::unordered_map<BoardRep, int> shortestPathFromStrings;
     for (auto s: strings) {
         maxDepth = std::max(maxDepth, static_cast<int>(s.size()));
         auto board = getBoardFromString(startBoard, s);
@@ -288,12 +288,14 @@ std::vector<ValidationRet> ForbiddenWordsFast::validateDuplicateStrings(BoardRaw
     }
 
     std::vector<ValidationRet> ret;
-    for (auto [board, dist]: shortestPathFromStrings) {
+    for (auto &[board, dist]: shortestPathFromStrings) {
         auto shortestPathLength = shortestPathFromBfs.count(board) ? shortestPathFromBfs.at(board) : -1;
         if (shortestPathLength == -1 || shortestPathLength > dist) {
             std::vector<std::string> strings = {};
             for (auto s: boardToStrings[board]) {
                 if (shortestPathLength == -1 || s.size() <= shortestPathLength) {
+                    skipCount++;
+                    skipLen += s.size();
                     strings.push_back(s);
                 }
             }
@@ -302,6 +304,7 @@ std::vector<ValidationRet> ForbiddenWordsFast::validateDuplicateStrings(BoardRaw
             ret.push_back({shortestPathLength, startBoard.getBlankTile(), strings});
         }
     }
+    DEBUG("Skipped count " << skipCount << ", skipLen: " << skipLen);
 
     return ret;
 }
@@ -354,6 +357,10 @@ void debugInsertString(
     const BoardRep &boardRep,
     const Direction lastDir,
     const std::unordered_map<BoardRep, BoardRep> &pred) {
+    
+    return;
+    DEBUG("???");
+    exit(1);
     
     if (debugInsertStringWordList.size() == 0) {
         std::ifstream fin("results/insertStringWordList.txt");
