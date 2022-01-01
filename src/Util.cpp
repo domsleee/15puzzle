@@ -22,6 +22,10 @@ std::vector<int> combine(const std::vector<std::vector<int>>& grids) {
 
 int getBlank(const std::vector<int>& board) {
     auto it = std::find(board.cbegin(), board.cend(), 0);
+    // if (it == board.cend()) {
+    //     DEBUG("BOARD SIZE: " << board.size());
+    //     for (auto c: board) DEBUG(c);
+    // }
     assertm(it != board.cend(), "Blank must exist in board");
     return std::distance(board.cbegin(), it);
 }

@@ -74,7 +74,7 @@ inline int Board::getMirrTile(int posn) const { return mirrGrid[posn]; }
 
 inline void Board::setMirrTile(int posn, int tile) { mirrGrid[posn] = tile; }
 
-bool Board::canMove(Direction dir) {
+bool Board::canMove(Direction dir) const {
     return canMoveList[blank][static_cast<int>(dir)];
 }
 
@@ -203,6 +203,12 @@ void Board::undoMove(const Board::MoveState& prev) {
     // Update WD
     wdRowIndex = prevRowIndex;
     wdColIndex = prevColIndex;
+}
+
+std::vector<int> Board::getGrid() const {
+    auto res = grid;
+    res[blank] = 0;
+    return res;
 }
 
 std::ostream& operator<<(std::ostream& out, const Board& board) {

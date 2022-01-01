@@ -8,6 +8,7 @@
 #include <vector>
 #include <unordered_set>
 #include <string>
+#include <unistd.h>
 
 #include "Direction.h"
 #include "BoardRaw.h"

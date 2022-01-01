@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <fstream>
 #include <limits>
+#include <unordered_map>
 
 #include "../include/Util.h"
 
@@ -20,6 +21,7 @@ using WalkingDistance::height;
 using WalkingDistance::row;
 using WalkingDistance::width;
 
+std::unordered_map<Hash, int> tableLookup;
 std::vector<Hash> tables;
 std::vector<Cost> WalkingDistance::costs;
 std::vector<std::vector<Index>> WalkingDistance::edgesUp;
@@ -82,13 +84,27 @@ std::pair<Table, int> hashToTable(const Hash& hash) {
     return {table, rowSpace};
 }
 
+void addHashToTables(const Hash& hash) {
+    tableLookup[hash] = tables.size();
+    tables.push_back(hash);
+}
+
 int add(const Table& table, int cost) {
     auto hash = calculateHash(table);
 
-    auto it = std::find(tables.cbegin(), tables.cend(), hash);
-    auto index = std::distance(tables.cbegin(), it);
-    if (it == tables.cend()) {
-        tables.push_back(hash);
+    int tablesSize = (int)tables.size();
+    int index = tablesSize;
+    if (tableLookup.find(hash) != tableLookup.end()) index = tableLookup[hash];
+
+    // auto it = std::find(tables.cbegin(), tables.cend(), hash);
+    // auto myIndex = std::distance(tables.cbegin(), it);
+
+    // if (myIndex != index) {
+    //     assertm(0, "epic fail");
+    // }
+
+    if (index == tablesSize) {
+        addHashToTables(hash);
         costs.push_back(cost);
         edgesUp.emplace_back(width, std::numeric_limits<Index>::max());
         edgesDown.emplace_back(width, std::numeric_limits<Index>::max());
@@ -100,17 +116,25 @@ int add(const Table& table, int cost) {
 void generate(const Board& goal) {
     // Start of BFS
     tables.clear();
+    tableLookup.clear();
     costs.clear();
     edgesUp.clear();
     edgesDown.clear();
 
+    int lastPerc = 0;
+
     // Initial table (goal)
-    tables.push_back(calculateHash(calculateTable(goal)));
+    addHashToTables(calculateHash(calculateTable(goal)));
     costs.push_back(0);
     edgesUp.emplace_back(width, std::numeric_limits<Index>::max());
     edgesDown.emplace_back(width, std::numeric_limits<Index>::max());
 
     for (std::size_t left = 0; left < tables.size(); left++) {
+        int newPerc = (100*left/tables.size());
+        if (newPerc != lastPerc) {
+            DEBUG("GENERATING LEFT " << left << " / " << tables.size() << " " << newPerc << "%");
+            lastPerc = newPerc;
+        }
         auto cost = costs[left] + 1;
         auto [table, rowSpace] = hashToTable(tables[left]);
 

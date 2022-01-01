@@ -11,6 +11,7 @@
 #include "../include/BoardRect.h"
 #include "../include/DisjointDatabase.h"
 #include "../include/Idastar.h"
+#include "../include/IdastarMulti.h"
 #include "../include/InputParser.h"
 #include "../include/Util.h"
 #include "../include/WalkingDistance.h"
@@ -125,7 +126,7 @@ template <class B>
 void solve(const std::vector<int>& solution, int width, int height,
            const std::vector<std::vector<int>>& grids, StateMachineSimple &fsm) {
     // Setup search
-    Idastar<B> search(fsm);
+    IdastarMulti<B> search(fsm);
 
     // Start search
     std::vector<std::pair<B, std::vector<Direction>>> results;

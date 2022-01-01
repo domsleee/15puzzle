@@ -9,9 +9,6 @@
 #include "DisjointDatabase.h"
 
 class Board {
-    const int WIDTH;
-    const int HEIGHT;
-
     // {0, -1}, {1, 0}, {0, 1}, {-1, 0}}
     const std::array<int, 4> deltas;  // Blank deltas
 
@@ -39,6 +36,9 @@ class Board {
     int getDelta(const std::vector<int>& g, int tile, int offset) const;
 
 public:
+    const int WIDTH;
+    const int HEIGHT;
+
     struct MoveState {
         int pattern;
         int mirrPattern;
@@ -50,11 +50,12 @@ public:
     Board(const std::vector<int>& g, int width, int height);
 
     int getHeuristic() const;
-    bool canMove(Direction dir);
+    bool canMove(Direction dir) const;
     // Should be run only once at start of search
     std::vector<Direction> getMoves() const;
     MoveState applyMove(Direction dir);
     void undoMove(const MoveState& prev);
+    std::vector<int> getGrid() const;
 
     friend std::ostream& operator<<(std::ostream& out, const Board& board);
 };
