@@ -291,11 +291,12 @@ std::vector<ValidationRet> ForbiddenWordsFast::validateDuplicateStrings(BoardRaw
 
     std::vector<ValidationRet> ret;
     for (auto &[board, dist]: shortestPathFromStrings) {
-        auto shortestPathLength = shortestPathFromBfs.count(board) ? shortestPathFromBfs.at(board) : -1;
+        int shortestPathLength = shortestPathFromBfs.count(board) ? shortestPathFromBfs.at(board) : -1;
         if (shortestPathLength == -1 || shortestPathLength > dist) {
             std::vector<std::string> strings = {};
             for (auto s: boardToStrings[board]) {
-                if (shortestPathLength == -1 || s.size() <= shortestPathLength) {
+                int stringSize = s.size();
+                if (shortestPathLength == -1 || stringSize <= shortestPathLength) {
                     skipCount++;
                     skipLen += s.size();
                     strings.push_back(s);

@@ -95,7 +95,7 @@ std::vector<BoardRaw> getAllStartingBoards(int width, int height) {
     res.push_back(startBoard);
     auto lastIndex = startBoard.grid.size()-1;
 
-    for (auto i = 0; i < lastIndex; ++i) {
+    for (std::size_t i = 0; i < lastIndex; ++i) {
         auto newGrid = startBoard.grid;
         std::swap(newGrid[i], newGrid[lastIndex]);
         res.push_back(BoardRaw(newGrid, width, height));

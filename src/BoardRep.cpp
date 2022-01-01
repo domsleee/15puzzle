@@ -8,7 +8,6 @@ int numBitsPerTileCache[1024] = {0};
 int getNumBitsPerTile(int boardSize) {
     if (numBitsPerTileCache[boardSize] != 0) return numBitsPerTileCache[boardSize];
     
-    auto largestVal = boardSize-1;
     auto numBits = 1;
     while (1 << (numBits) < boardSize) {
         numBits++;

@@ -14,3 +14,4 @@ misc/
 build/
 compile_commands.json
 scripts/out
+**/node_modules

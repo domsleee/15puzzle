@@ -174,7 +174,8 @@ int ForbiddenWords::validateDuplicateStrings(BoardRaw startBoard, std::unordered
             auto shortestPathLength = shortestPathFromBfs.count(board) ? shortestPathFromBfs.at(board) : -1;
 
             for (auto s: boardToStrings[board]) {
-                if (shortestPathLength == -1 || s.size() > shortestPathLength) {
+                int stringSize = s.size();
+                if (shortestPathLength == -1 || stringSize > shortestPathLength) {
                     strings.push_back(s);
                 }
             }

@@ -13,13 +13,13 @@
 // WIDTH < HEIGHT
 
 BoardRect::BoardRect(const std::vector<int>& g, int width, int height)
-    : WIDTH(width),
-      HEIGHT(height),
-      deltas({-width, 1, width, -1}),
+    : deltas({-width, 1, width, -1}),
       canMoveList(calcMoveList(width, height)),
       blank(getBlank(g)),
+      patterns(DisjointDatabase::calculatePatterns(g)),
       grid(g),
-      patterns(DisjointDatabase::calculatePatterns(g)) {}
+      WIDTH(width),
+      HEIGHT(height) {}
 
 int BoardRect::getHeuristic() const {
     return DisjointDatabase::getHeuristic(patterns);

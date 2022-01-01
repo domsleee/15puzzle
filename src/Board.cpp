@@ -11,16 +11,16 @@
 #include "../include/WalkingDistance.h"
 
 Board::Board(const std::vector<int>& g, int width, int height)
-    : WIDTH(width),
-      HEIGHT(height),
-      deltas({-width, 1, width, -1}),
+    : deltas({-width, 1, width, -1}),
       canMoveList(calcMoveList(width, height)),
       blank(getBlank(g)),
       grid(g),
       mirrGrid(width * height),
       patterns(DisjointDatabase::calculatePatterns(g)),
       wdRowIndex(WalkingDistance::getIndex(g)),
-      wdColIndex(WalkingDistance::getIndex(g, false)) {
+      wdColIndex(WalkingDistance::getIndex(g, false)),
+      WIDTH(width),
+      HEIGHT(height) {
     assertm((int)g.size() == width * height, "Wrong board dimensions");
 
     for (int i = 0; i < WIDTH * HEIGHT; i++) {

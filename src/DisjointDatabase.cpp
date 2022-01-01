@@ -228,7 +228,7 @@ std::vector<Hash> DisjointDatabase::calculatePatterns(const Grid& grid) {
 
 int DisjointDatabase::getHeuristic(const std::vector<Hash>& patterns) {
     int res = 0;
-    for (auto i = 0; i < patterns.size(); ++i) {
+    for (std::size_t i = 0; i < patterns.size(); ++i) {
         res += costs[i][patterns[i]];
     }
     return res;

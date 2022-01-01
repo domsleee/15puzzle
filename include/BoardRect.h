@@ -28,6 +28,8 @@ class BoardRect {
     // Used for disjoint database
     std::vector<int> patterns;  // Pattern IDs
 
+    std::vector<int> grid;  // Value to position mapping
+
     int getTile(int posn) const;
     void setTile(int posn, int tile);
 
@@ -43,7 +45,6 @@ public:
     };
     
     BoardRect(const std::vector<int>& g, int width, int height);
-    std::vector<int> grid;  // Value to position mapping
 
     int getHeuristic() const;
     bool canMove(Direction dir) const;

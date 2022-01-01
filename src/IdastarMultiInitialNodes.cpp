@@ -9,9 +9,9 @@
 
 template <class B>
 IdastarMultiInitialNodes<B>::InitialNode::InitialNode(B startBoard, int g, int fsmState, const std::vector<Direction> &path)
-    : g(g),
+    : startBoard(startBoard),
+      g(g),
       fsmState(fsmState),
-      startBoard(startBoard),
       path(path) {}
 
 template <class B>

@@ -83,7 +83,7 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
 
     std::vector<std::vector<int>> initialNodeAllocations(numWorkers, std::vector<int>());
     for (auto i = 0; i < numWorkers; ++i) {
-        for (auto j = i; j < initialNodes.size(); j += numWorkers) {
+        for (auto j = i; j < static_cast<int>(initialNodes.size()); j += numWorkers) {
             initialNodeAllocations[i].push_back(j);
         }
     }
@@ -123,7 +123,7 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
                 read(serverReadPipe[0], &nodeId, sizeof(nodeId));
                 read(serverReadPipe[0], &dfsPathSize, sizeof(dfsPathSize));
                 DEBUG_HOST("FOUND WITH NODE " << nodeId << " DFS SIZE " << dfsPathSize);
-                auto initialPathSize = initialNodes[nodeId].path.size();
+                int initialPathSize = initialNodes[nodeId].path.size();
                 path.resize(dfsPathSize + initialPathSize);
 
                 for (auto j = 0; j < dfsPathSize; ++j) {
@@ -217,7 +217,7 @@ void IdastarMulti<B>::doClient(int nodeId, std::vector<typename IdastarMultiInit
     DEBUG_WITH_PID("read all nodestoprocess");
     Idastar<B> idastar(fsm);
 
-    int command, limit = 0;
+    int limit = 0;
     while (true) { // read until EOF
         read(serverWritePipe[0], &limit, sizeof(int));
 

@@ -63,7 +63,7 @@ StateMachineSimple dfsOrderFSM(StateMachine fsm) {
             st.push(nxState);
         }
     }
-    auto newNumStates = dfsOrder.size();
+    int newNumStates = dfsOrder.size();
 
     int numStates = fsm.states;
     std::vector<int> out(newNumStates, 0), f(newNumStates, -1);
