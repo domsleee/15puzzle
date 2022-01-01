@@ -1,5 +1,4 @@
 #include "../include/FSMBuilder.h"
-#include "../include/ForbiddenWords.h"
 #include "../include/ForbiddenWordsFast.h"
 #include "../include/Util.h"
 #include "../include/InputParser.h"
@@ -18,7 +17,6 @@ FSMBuilder::FSMBuilder(int width, int height, int maxDepth):
 
 StateMachineSimple FSMBuilder::build() {
     START_TIMER(forbiddenWords);
-    //auto forbiddenWords = ForbiddenWords(14, width, height);
     auto forbiddenWords = ForbiddenWordsFast(maxDepth, width, height);
     forbiddenWords.printMessage();
     auto strings = forbiddenWords.getForbiddenWords();

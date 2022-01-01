@@ -1,5 +1,4 @@
 #include "../include/ForbiddenWordsFast.h"
-#include "../include/ForbiddenWords.h"
 #include "../include/BFSDefs.h"
 #include "../include/BoardRep.h"
 
@@ -25,6 +24,7 @@ void debugInsertString(
     const Direction lastDir,
     const std::map<BoardRep, BoardRep> &pred);
 
+int removeDuplicateSuffixes(std::unordered_set<std::string> &strings);
 
 ForbiddenWordsFast::ForbiddenWordsFast(long long depthLimit, int width, int height)
     : depthLimit(depthLimit),
@@ -71,16 +71,14 @@ std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords() {
             [this](std::unordered_set<std::string> a, const BoardRaw &startBoard) -> std::unordered_set<std::string> {
                 auto words = getForbiddenWords(startBoard);
                 for (const auto &s: words) a.insert(s);
-                auto forb = ForbiddenWords(0, 0, 0); 
-                forb.removeDuplicateSuffixes(a);
+                removeDuplicateSuffixes(a);
                 return a;
             }
         );
     }
     
     FORB2_DEBUG("set union " << uni.size());
-    auto forb = ForbiddenWords(0, 0, 0); 
-    forb.removeDuplicateSuffixes(uni);
+    removeDuplicateSuffixes(uni);
     writeWordsToFile(beforeValidationFile, uni);
     validateDuplicateStrings(uni);
     FORB2_DEBUG("total strings " << uni.size());
@@ -395,4 +393,25 @@ void debugInsertString(
             //for (auto b1: b) std::cout << b1 << ' '; std::cout << '\n';
         }
     }
+}
+
+int removeDuplicateSuffixes(std::unordered_set<std::string> &strings) {
+    std::unordered_set<std::string> stringsToRemove;
+    std::vector<std::string> vec{strings.begin(), strings.end()};
+    std::sort(vec.begin(), vec.end(), StringVectorCompare());
+    Trie t;
+
+    for (auto s: vec) {
+        if (t.hasAnySuffix(s)) {
+            stringsToRemove.insert(s);
+            continue;
+        }
+        t.insertReverseIntoTrie(s);
+    }
+    DEBUG("Removed " << stringsToRemove.size() << " strings by suffix searching");
+    for (auto string: stringsToRemove) {
+        strings.erase(string);
+    }
+
+    return stringsToRemove.size();
 }

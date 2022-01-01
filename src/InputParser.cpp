@@ -70,22 +70,6 @@ int InputParser::getFSMDepthLimit() {
     return std::stoi(args[0]);
 }
 
-long long InputParser::getFSMMemLimit() {
-    auto args = getMultipleArgs({"--fsmMemLimit"});
-    if (args.empty()) {
-        return MAX_LL;
-    }
-    return std::stoll(args[0]) * (long long)1000000;
-}
-
-long long InputParser::getFSMItLimit() {
-    auto args = getMultipleArgs({"--fsmItLimit"});
-    if (args.empty()) {
-        return MAX_LL;
-    }
-    return std::stoll(args[0]);
-}
-
 std::string InputParser::getFSMFile() {
     auto args = getMultipleArgs({"--fsmFile"});
     return args[0];

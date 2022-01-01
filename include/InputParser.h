@@ -19,8 +19,6 @@ public:
     static std::string getDatabase();
     static std::string getBoard();
     static int getFSMDepthLimit();
-    static long long getFSMMemLimit();
-    static long long getFSMItLimit();
     static std::string getFSMFile();
 
 
