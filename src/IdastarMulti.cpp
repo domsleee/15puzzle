@@ -13,6 +13,7 @@
 #include <numeric>
 #include <sys/types.h>
 #include <signal.h>
+#include <sys/wait.h>
 
 #include <chrono>
 #include <thread>

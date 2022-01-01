@@ -6,7 +6,7 @@ wbin/puzzle.js
 wbin/puzzle.wasm
 wobj/
 
-databases/*.dat
+databases/*
 .DS_Store
 .vs/
 .vscode/
