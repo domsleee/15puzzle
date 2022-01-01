@@ -11,6 +11,7 @@
 
 #include <queue>
 #include <unordered_map>
+#include <map>
 #include <algorithm>
 #include <execution>
 #include <unordered_set>
@@ -22,12 +23,11 @@ void debugInsertString(
     const BoardRep &startBoardRep,
     const BoardRep &boardRep,
     const Direction lastDir,
-    const std::unordered_map<BoardRep, BoardRep> &pred);
+    const std::map<BoardRep, BoardRep> &pred);
 
 
-ForbiddenWordsFast::ForbiddenWordsFast(long long memLimit, long long itLimit, int width, int height)
-    : memLimit(memLimit),
-      itLimit(itLimit),
+ForbiddenWordsFast::ForbiddenWordsFast(long long depthLimit, int width, int height)
+    : depthLimit(depthLimit),
       width(width),
       height(height)
     {
@@ -50,9 +50,8 @@ std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords() {
         return uni;
     }
 
-    auto memLimitStr = getMemLimitStr();
-    auto itLimitStr = getItLimitStr();
-    auto strFile = "databases/fsm-" + std::to_string(width) + "x" + std::to_string(height) + "-" + memLimitStr + "-" + itLimitStr;
+    auto depthLimitStr = getDepthLimitStr();
+    auto strFile = "databases/fsm-" + std::to_string(width) + "x" + std::to_string(height) + "-" + depthLimitStr;
     auto beforeValidationFile = strFile + "-beforevalidation";
 
     if (readWordsFromFile(strFile, uni)) {
@@ -65,19 +64,16 @@ std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords() {
     }
     else {
         auto startingBoards = getAllStartingBoards(width, height);
-        uni = std::transform_reduce(
-            std::execution::seq,
+        uni = std::accumulate(
             startingBoards.cbegin(),
             startingBoards.cend(),
             std::unordered_set<std::string>(),
-            [=](std::unordered_set<std::string> a, const std::unordered_set<std::string> &b) -> std::unordered_set<std::string> {
-                for (const auto &s: b) a.insert(s);
+            [this](std::unordered_set<std::string> a, const BoardRaw &startBoard) -> std::unordered_set<std::string> {
+                auto words = getForbiddenWords(startBoard);
+                for (const auto &s: words) a.insert(s);
                 auto forb = ForbiddenWords(0, 0, 0); 
                 forb.removeDuplicateSuffixes(a);
                 return a;
-            },
-            [=](const BoardRaw &startBoard) -> std::unordered_set<std::string> {
-                return getForbiddenWords(startBoard);
             }
         );
     }
@@ -95,7 +91,7 @@ std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords() {
 std::string getString(
     const BoardRep &startBoardRep,
     const BoardRep &boardRep,
-    const std::unordered_map<BoardRep, BoardRep> &pred)
+    const std::map<BoardRep, BoardRep> &pred)
 {
     assertm(pred.count(boardRep) > 0, "ok??");
     auto currBoardRep = boardRep;
@@ -131,7 +127,7 @@ void maybeInsertString(
     const BoardRep &startBoardRep,
     const BoardRep &boardRep,
     const Direction lastDir,
-    const std::unordered_map<BoardRep, BoardRep> &pred)
+    const std::map<BoardRep, BoardRep> &pred)
 {
     std::string s = getString(startBoardRep, boardRep, pred)
         + std::string(1, directionToChar(lastDir));
@@ -145,25 +141,26 @@ void maybeInsertString(
     res.insert(s);
 }
 
-std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords(BoardRaw startBoard) {
+std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords(BoardRaw startBoard) const {
     std::unordered_set<std::string> res;
-    std::unordered_map<BoardRep, BoardRep> pred;
-    auto q = std::queue<BoardRep>();
-    long long it = 0;
-    int seenDepth = -1;
+    std::map<BoardRep, BoardRep> pred;
+    auto q = std::queue<std::pair<int, BoardRep>>();
+    int maxKnownDepth = -1;
     auto startBoardRep = BoardRep{startBoard};
-    q.push(startBoardRep);
+    q.push({0, startBoardRep});
     pred.emplace(startBoardRep, startBoardRep);
     Trie trie;
 
     while (!q.empty()) {
-        ++it;
-        if (it > itLimit || (memLimit != MAX_LL && it % 100 == 0 && getVirtualUsage() > memLimit)) {
-            DEBUG("gave up after " << it << " iterations");
-            break;
-        }
+        
         //if (it % 100 && getVirtualUsage() % 10000 < 100) DEBUG(getVirtualUsage() << " VS " << memLimit);
-        auto front = q.front(); q.pop();
+        auto [depth, front] = q.front(); q.pop();
+
+        if (depth > maxKnownDepth) {
+            maxKnownDepth = depth;
+            DEBUG("new depth " << maxKnownDepth);
+        }
+
         auto board = front.toBoard();
         for (int i = 0; i < 4; i++) {
             auto dir = static_cast<Direction>(i);
@@ -176,7 +173,12 @@ std::unordered_set<std::string> ForbiddenWordsFast::getForbiddenWords(BoardRaw s
                     continue;
                 }
                 pred.emplace(newBoardRep, front);
-                q.push(newBoardRep);
+
+                auto newDepth = depth + 1;
+                if (newDepth >= depthLimit) {
+                    continue;
+                }                
+                q.push({newDepth, newBoardRep});
             }
         }
     }
@@ -356,7 +358,7 @@ void debugInsertString(
     const BoardRep &startBoardRep,
     const BoardRep &boardRep,
     const Direction lastDir,
-    const std::unordered_map<BoardRep, BoardRep> &pred) {
+    const std::map<BoardRep, BoardRep> &pred) {
     
     return;
     DEBUG("???");

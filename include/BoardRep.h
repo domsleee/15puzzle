@@ -46,3 +46,15 @@ struct std::hash<BoardRep> {
         return seed;
     }
 };
+
+template <>
+struct std::less<BoardRep> {
+    bool operator()(const BoardRep &a, const BoardRep &b) const {
+        auto arraySize = a.getArraySize();
+        for (auto i = 0; i < arraySize; ++i) {
+            if (a.grid[i] < b.grid[i]) return true;
+            else if (a.grid[i] > b.grid[i]) return false;
+        }
+        return false;
+    }
+};

@@ -33,8 +33,8 @@ bool InputParser::boardExists() {
     return optionExists("-b") || optionExists("--board");
 }
 
-bool InputParser::fsmDepthExists() {
-    return optionExists("-f") || optionExists("--fsmDepth");
+bool InputParser::fsmDepthLimitExists() {
+    return optionExists("-f") || optionExists("--fsmDepthLimit");
 }
 
 bool InputParser::fsmFileExists() {
@@ -65,8 +65,8 @@ std::string InputParser::getBoard() {
     return args[0];
 }
 
-int InputParser::getFSMDepth() {
-    auto args = getMultipleArgs({"-f", "--fsmDepth"});
+int InputParser::getFSMDepthLimit() {
+    auto args = getMultipleArgs({"-f", "--fsmDepthLimit"});
     return std::stoi(args[0]);
 }
 

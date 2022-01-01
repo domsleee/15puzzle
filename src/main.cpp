@@ -186,6 +186,14 @@ int main(int argc, const char* argv[]) {
     }
     const auto solution = combine(grids);
 
+    // getfsm
+    auto fsmDepth = 14;
+    if (InputParser::fsmDepthLimitExists()) {
+        fsmDepth = InputParser::getFSMDepthLimit();
+    }
+    auto fsmBuilder = FSMBuilder(width, height, fsmDepth);
+    auto fsm = fsmBuilder.build();
+
     // Setup database
     START_TIMER(db);
     DisjointDatabase::load(grids, dbName, width, height);
@@ -197,15 +205,6 @@ int main(int argc, const char* argv[]) {
         WalkingDistance::load(solution, width, height);
         END_TIMER(wd);
     }
-
-    // getfsm
-    auto fsmDepth = 14;
-    if (InputParser::fsmDepthExists()) {
-        fsmDepth = InputParser::getFSMDepth();
-    }
-
-    auto fsmBuilder = FSMBuilder(width, height, fsmDepth);
-    auto fsm = fsmBuilder.build();
 
     // Reading board file
     const auto startBoards(getBoards());

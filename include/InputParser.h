@@ -11,14 +11,14 @@ public:
     static bool showHelp();
     static bool databaseExists();
     static bool boardExists();
-    static bool fsmDepthExists();
+    static bool fsmDepthLimitExists();
     static bool showInteractive();
     static bool runParallel();
     static bool fsmFileExists();
 
     static std::string getDatabase();
     static std::string getBoard();
-    static int getFSMDepth();
+    static int getFSMDepthLimit();
     static long long getFSMMemLimit();
     static long long getFSMItLimit();
     static std::string getFSMFile();

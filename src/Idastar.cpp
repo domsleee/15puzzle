@@ -29,6 +29,7 @@ std::vector<Direction> Idastar<B>::solve(const B& start) {
         minCost = INF;
         DEBUG(' ' << limit << ", " << nodes);
         auto copy = start;
+        fsm.undoMove(0);
         if (dfs(copy, 0)) {
             DEBUG("Nodes expanded: " << nodes);
             return path;
