@@ -21,7 +21,7 @@ using WalkingDistance::height;
 using WalkingDistance::row;
 using WalkingDistance::width;
 
-std::unordered_map<Hash, int> tableLookup;
+std::unordered_map<Hash, int> tableIndexLookup;
 std::vector<Hash> tables;
 std::vector<Cost> WalkingDistance::costs;
 std::vector<std::vector<Index>> WalkingDistance::edgesUp;
@@ -85,7 +85,7 @@ std::pair<Table, int> hashToTable(const Hash& hash) {
 }
 
 void addHashToTables(const Hash& hash) {
-    tableLookup[hash] = tables.size();
+    tableIndexLookup[hash] = tables.size();
     tables.push_back(hash);
 }
 
@@ -94,7 +94,7 @@ int add(const Table& table, int cost) {
 
     int tablesSize = (int)tables.size();
     int index = tablesSize;
-    if (tableLookup.find(hash) != tableLookup.end()) index = tableLookup[hash];
+    if (tableIndexLookup.find(hash) != tableIndexLookup.end()) index = tableIndexLookup[hash];
 
     // auto it = std::find(tables.cbegin(), tables.cend(), hash);
     // auto myIndex = std::distance(tables.cbegin(), it);
@@ -116,12 +116,12 @@ int add(const Table& table, int cost) {
 void generate(const Board& goal) {
     // Start of BFS
     tables.clear();
-    tableLookup.clear();
+    tableIndexLookup.clear();
     costs.clear();
     edgesUp.clear();
     edgesDown.clear();
 
-    int lastPerc = 0;
+    int lastPercentage = 0;
 
     // Initial table (goal)
     addHashToTables(calculateHash(calculateTable(goal)));
@@ -130,10 +130,10 @@ void generate(const Board& goal) {
     edgesDown.emplace_back(width, std::numeric_limits<Index>::max());
 
     for (std::size_t left = 0; left < tables.size(); left++) {
-        int newPerc = (100*left/tables.size());
-        if (newPerc != lastPerc) {
-            DEBUG("GENERATING LEFT " << left << " / " << tables.size() << " " << newPerc << "%");
-            lastPerc = newPerc;
+        int newPercentage = (100*left/tables.size());
+        if (newPercentage != lastPercentage) {
+            DEBUG("GENERATING LEFT " << left << " / " << tables.size() << " " << newPercentage << "%");
+            lastPercentage = newPercentage;
         }
         auto cost = costs[left] + 1;
         auto [table, rowSpace] = hashToTable(tables[left]);
