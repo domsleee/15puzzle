@@ -15,7 +15,7 @@ IdastarMultiInitialNodes<B>::InitialNode::InitialNode(B startBoard, int g, int f
       path(path) {}
 
 template <class B>
-IdastarMultiInitialNodes<B>::IdastarMultiInitialNodes(StateMachine &fsm)
+IdastarMultiInitialNodes<B>::IdastarMultiInitialNodes(StateMachineSimple &fsm)
     : fsm(fsm)
     {}
 
@@ -49,7 +49,7 @@ struct BFSNodeWithNumSucc {
     std::vector<Direction> succ;
     int g;
 
-    BFSNodeWithNumSucc(StateMachine &fsm, int fsmState, const B &node, int g)
+    BFSNodeWithNumSucc(StateMachineSimple &fsm, int fsmState, const B &node, int g)
         : fsmState(fsmState),
           node(node),
           g(g) {

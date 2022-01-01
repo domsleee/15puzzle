@@ -11,7 +11,6 @@ Idastar<B>::Idastar(StateMachineSimple &fsm) : path({}), minCost(INF), limit(0),
 
 template <class B>
 std::vector<Direction> Idastar<B>::solve(const B& start) {
-    DEBUG("Running single threaded");
     DEBUG("Solving: \n" << start);
 
     path.clear();

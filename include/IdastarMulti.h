@@ -4,12 +4,13 @@
 #include "Direction.h"
 #include "AhoCorasick.h"
 #include "IdastarMultiInitialNodes.h"
+#include "StateMachineSimple.h"
 #include <vector>
 
 template <class B>
 class IdastarMulti {
 private:
-    StateMachine &fsm;
+    StateMachineSimple &fsm;
     int limit, minCost;
     long long nodes;
 
@@ -30,7 +31,7 @@ private:
 
 
 public:
-    IdastarMulti(StateMachine &fsm);
+    IdastarMulti(StateMachineSimple &fsm);
 
     std::vector<Direction> solve(const B& start);
 };

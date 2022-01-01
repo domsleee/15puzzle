@@ -122,12 +122,11 @@ bool solvable(const std::vector<int>& solution, int width,
            (getInversions(board) % 2 == (solutionBlankRow - boardBlankRow) % 2);
 }
 
-template <class B>
-void solve(const std::vector<int>& solution, int width, int height,
-           const std::vector<std::vector<int>>& grids, StateMachineSimple &fsm) {
-    // Setup search
-    IdastarMulti<B> search(fsm);
-
+template <class Search, class B>
+void solveWithSearch(Search &search,
+            const std::vector<int>& solution, int width, int height,
+            const std::vector<std::vector<int>>& grids, StateMachineSimple &fsm)
+{
     // Start search
     std::vector<std::pair<B, std::vector<Direction>>> results;
     START_TIMER(solve);
@@ -165,6 +164,21 @@ void solve(const std::vector<int>& solution, int width, int height,
             }
         }
         std::cout << board << '\n';
+    }
+}
+
+template <class B>
+void solve(const std::vector<int>& solution, int width, int height,
+           const std::vector<std::vector<int>>& grids, StateMachineSimple &fsm) {
+    // Setup search
+    if (InputParser::runParallel()) {
+        DEBUG("Running parallel");
+        IdastarMulti<B> search(fsm);
+        solveWithSearch<IdastarMulti<B>, B>(search, solution, width, height, grids, fsm);
+    } else {
+        DEBUG("Running single threaded");
+        Idastar<B> search(fsm);
+        solveWithSearch<Idastar<B>, B>(search, solution, width, height, grids, fsm);
     }
 }
 

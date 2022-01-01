@@ -18,7 +18,7 @@ private:
 public:
     std::vector<Direction> path;
 
-    Idastar(StateMachine &fsm);
+    Idastar(StateMachineSimple &fsm);
 
     std::vector<Direction> solve(const B& start);
     bool dfs(B& root, int g);

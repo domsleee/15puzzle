@@ -29,7 +29,7 @@ constexpr int RESULT_NOFIND = 55;
 constexpr int RESULT_FOUND = 56;
 
 template <class B>
-IdastarMulti<B>::IdastarMulti(StateMachine &fsm) : fsm(fsm), nodes(0), limit(0), minCost(0) {}
+IdastarMulti<B>::IdastarMulti(StateMachineSimple &fsm) : fsm(fsm), limit(0), minCost(0), nodes(0) {}
 
 template <class B>
 std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
