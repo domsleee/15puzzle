@@ -25,8 +25,8 @@ using WalkingDistance::width;
 std::map<Hash, int> tableIndexLookup;
 std::vector<Hash> tables;
 std::vector<Cost> WalkingDistance::costs;
-std::vector<std::vector<Index>> WalkingDistance::edgesUp;
-std::vector<std::vector<Index>> WalkingDistance::edgesDown;
+std::vector<Index> WalkingDistance::edgesUp;
+std::vector<Index> WalkingDistance::edgesDown;
 
 std::vector<RowColType> WalkingDistance::row;  // Row #
 std::vector<RowColType> WalkingDistance::col;  // Column #
@@ -107,8 +107,10 @@ int add(const Table& table, int cost) {
     if (index == tablesSize) {
         addHashToTables(hash);
         costs.push_back(cost);
-        edgesUp.emplace_back(width, std::numeric_limits<Index>::max());
-        edgesDown.emplace_back(width, std::numeric_limits<Index>::max());
+        for (auto i = 0; i < width; ++i) {
+            edgesUp.push_back(std::numeric_limits<Index>::max());
+            edgesDown.push_back(std::numeric_limits<Index>::max());
+        }
     }
 
     return index;
@@ -127,8 +129,10 @@ void generate(const Board& goal) {
     // Initial table (goal)
     addHashToTables(calculateHash(calculateTable(goal)));
     costs.push_back(0);
-    edgesUp.emplace_back(width, std::numeric_limits<Index>::max());
-    edgesDown.emplace_back(width, std::numeric_limits<Index>::max());
+    for (auto i = 0; i < width; ++i) {
+        edgesUp.push_back(std::numeric_limits<Index>::max());
+        edgesDown.push_back(std::numeric_limits<Index>::max());
+    }
 
     for (std::size_t left = 0; left < tables.size(); left++) {
         int newPercentage = (100*left/tables.size());
@@ -147,8 +151,8 @@ void generate(const Board& goal) {
 
                     auto index = add(table, cost);
 
-                    edgesUp[left][x] = index;
-                    edgesDown[index][x] = left;
+                    edgesUp[left*width + x] = index;
+                    edgesDown[index*width + x] = left;
 
                     table[rowTile][x]++;
                     table[rowSpace][x]--;
@@ -164,8 +168,8 @@ void generate(const Board& goal) {
 
                     auto index = add(table, cost);
 
-                    edgesDown[left][x] = index;
-                    edgesUp[index][x] = left;
+                    edgesDown[left*width + x] = index;
+                    edgesUp[index*width + x] = left;
 
                     table[rowTile][x]++;
                     table[rowSpace][x]--;
@@ -202,15 +206,11 @@ void save(const std::string& filename) {
     for (auto cost : costs) {
         file.write(reinterpret_cast<char*>(&cost), sizeof(cost));
     }
-    for (auto& edge : edgesUp) {
-        for (auto col : edge) {
-            file.write(reinterpret_cast<char*>(&col), sizeof(col));
-        }
+    for (auto i = 0; i < size * width; ++i) {
+        file.write(reinterpret_cast<char*>(&edgesUp[i]), sizeof(Index));
     }
-    for (auto& edge : edgesDown) {
-        for (auto col : edge) {
-            file.write(reinterpret_cast<char*>(&col), sizeof(col));
-        }
+    for (auto i = 0; i < size * width; ++i) {
+        file.write(reinterpret_cast<char*>(&edgesDown[i]), sizeof(Index));
     }
 }
 
@@ -252,8 +252,8 @@ void WalkingDistance::load(const std::vector<int>& goal, int w, int h) {
 
     tables.resize(size);
     costs.resize(size);
-    edgesUp.resize(size);
-    edgesDown.resize(size);
+    edgesUp.resize(width * size);
+    edgesDown.resize(width * size);
 
     for (auto& table : tables) {
         std::size_t tableSize;
@@ -267,17 +267,11 @@ void WalkingDistance::load(const std::vector<int>& goal, int w, int h) {
     for (auto& cost : costs) {
         file.read(reinterpret_cast<char*>(&cost), sizeof(cost));
     }
-    for (auto& edge : edgesUp) {
-        edge.resize(width);
-        for (auto& col : edge) {
-            file.read(reinterpret_cast<char*>(&col), sizeof(col));
-        }
+    for (auto i = 0; i < width * size; ++i) {
+        file.read(reinterpret_cast<char*>(&edgesUp[i]), sizeof(Index));
     }
-    for (auto& edge : edgesDown) {
-        edge.resize(width);
-        for (auto& col : edge) {
-            file.read(reinterpret_cast<char*>(&col), sizeof(col));
-        }
+    for (auto i = 0; i < width * size; ++i) {
+        file.read(reinterpret_cast<char*>(&edgesDown[i]), sizeof(Index));
     }
 }
 
