@@ -33,6 +33,8 @@ IdastarMulti<B>::IdastarMulti(StateMachineSimple &fsm) : fsm(fsm), limit(0), min
 
 template <class B>
 std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
+    DEBUG("Solving: \n" << start);
+
     std::vector<Direction> path;
 
     auto initialNodeGetter = IdastarMultiInitialNodes<B>(fsm);

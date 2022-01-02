@@ -20,29 +20,6 @@ IdastarMultiInitialNodes<B>::IdastarMultiInitialNodes(StateMachineSimple &fsm)
     {}
 
 template <class B>
-std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> IdastarMultiInitialNodes<B>::getInitialNodes(const B& start, int targetNodes) {
-    std::vector<InitialNode> res;
-
-    fsm.undoMove(0);
-    for (int i = 0; i < 4; ++i) {
-        auto node = start;
-        auto dir = static_cast<Direction>(i);
-        if (fsm.canMove(i) && node.canMove(dir)) {
-            auto prev = node.applyMove(dir);
-            auto prevFsm = fsm.applyMove(i);
-
-            //DEBUG("INITIAL DIR " << dir << " i " << i << " INDEX " << res.size() << " FSM " << fsm.state);
-            res.push_back(InitialNode(node, 1, fsm.state, {dir}));
-
-            fsm.undoMove(prevFsm);
-            node.undoMove(prev);
-        }
-    }
-
-    return res;
-}
-
-template <class B>
 struct BFSNodeWithNumSucc {
     int fsmState;
     B node;
@@ -79,6 +56,9 @@ std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> IdastarMultiIniti
     std::queue<BFSNodeWithNumSucc<B>> q;
     q.push({fsm, 0, start, 0});
 
+    auto solvedGrid = getSolvedGrid(start.WIDTH, start.HEIGHT);
+    auto solvedHash = gridHash(solvedGrid);
+
     while (!q.empty()) {
         auto top = q.front();
         //DEBUG(q.size() - 1 + top.succ.size() << " > " << targetNodes << " ?");
@@ -90,6 +70,7 @@ std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> IdastarMultiIniti
         auto currHash = gridHash(top.node.getGrid());
         //DEBUG("eval board " << currHash);
 
+        bool doBreak = false;
         for (auto dir: top.succ) {
             auto newNode = top.node;
             newNode.applyMove(dir);
@@ -97,6 +78,9 @@ std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> IdastarMultiIniti
             auto boardStr = gridHash(newNode.getGrid());
 
             if (seen.count(boardStr)) continue;
+            if (boardStr == solvedHash) {
+                doBreak = true;
+            };
             seen.insert(boardStr);
             pred[boardStr] = {dir, currHash};
 
@@ -104,6 +88,8 @@ std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> IdastarMultiIniti
             fsm.applyMove(static_cast<int>(dir));
             q.push({fsm, fsm.state, newNode, top.g + 1});
         }
+
+        if (doBreak) break;
     }
 
     std::vector<InitialNode> res;
