@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <fstream>
 #include <limits>
-#include <unordered_map>
+#include <map>
 
 #include "../include/Util.h"
 
@@ -12,6 +12,7 @@ using Table = std::vector<std::vector<int>>;
 using Hash = std::string;
 using Cost = WalkingDistance::Cost;
 using Index = WalkingDistance::Index;
+using RowColType = WalkingDistance::RowColType;
 
 using WalkingDistance::col;
 using WalkingDistance::costs;
@@ -21,14 +22,14 @@ using WalkingDistance::height;
 using WalkingDistance::row;
 using WalkingDistance::width;
 
-std::unordered_map<Hash, int> tableIndexLookup;
+std::map<Hash, int> tableIndexLookup;
 std::vector<Hash> tables;
 std::vector<Cost> WalkingDistance::costs;
 std::vector<std::vector<Index>> WalkingDistance::edgesUp;
 std::vector<std::vector<Index>> WalkingDistance::edgesDown;
 
-std::vector<int> WalkingDistance::row;  // Row #
-std::vector<int> WalkingDistance::col;  // Column #
+std::vector<RowColType> WalkingDistance::row;  // Row #
+std::vector<RowColType> WalkingDistance::col;  // Column #
 
 int WalkingDistance::width;
 int WalkingDistance::height;
@@ -171,7 +172,12 @@ void generate(const Board& goal) {
                 }
             }
         }
+        if (tables.size() > std::numeric_limits<Index>::max()) {
+            assertm(0, "table is too large for WalkingDistance::Index");
+        }
     }
+
+    tableIndexLookup.clear(); // only used for generate
 }
 
 void save(const std::string& filename) {
@@ -215,6 +221,8 @@ void WalkingDistance::load(const std::vector<int>& goal, int w, int h) {
     height = h;
     auto length = w * h;
 
+    assertm(width <= 255 && height <= 255, "row/col arrays are uint8_t");
+
     row.resize(length);
     col.resize(length);
 
@@ -253,6 +261,9 @@ void WalkingDistance::load(const std::vector<int>& goal, int w, int h) {
         table.resize(tableSize);
         file.read(table.data(), tableSize);
     }
+    DEBUG("#tables: " << tables.size() << ", " << tables.capacity()
+        << ", each table size: " << tables[0].size() << ", " << tables[0].capacity());
+
     for (auto& cost : costs) {
         file.read(reinterpret_cast<char*>(&cost), sizeof(cost));
     }

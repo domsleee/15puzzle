@@ -9,13 +9,14 @@
 namespace WalkingDistance {
 
 using Cost = uint_fast8_t;
-using Index = uint_fast16_t;
+using Index = uint_fast32_t;
+using RowColType = uint_fast8_t;
 
 extern std::vector<Cost> costs;
 extern std::vector<std::vector<Index>> edgesUp;
 extern std::vector<std::vector<Index>> edgesDown;
-extern std::vector<int> row;
-extern std::vector<int> col;
+extern std::vector<RowColType> row;
+extern std::vector<RowColType> col;
 extern int width;
 extern int height;
 

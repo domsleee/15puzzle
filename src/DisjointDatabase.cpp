@@ -232,8 +232,10 @@ int DisjointDatabase::getHeuristic(const std::vector<Hash>& patterns) {
         res += costs[i][patterns[i]];
     }
     return res;
+
+    /*
     return std::transform_reduce(
         std::execution::seq, costs.cbegin(), costs.cend(),
         patterns.cbegin(), 0, std::plus<>(),
-        [](const auto& cost, const auto& pattern) { return cost[pattern]; });
+        [](const auto& cost, const auto& pattern) { return cost[pattern]; });*/
 }

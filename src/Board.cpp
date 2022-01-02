@@ -95,6 +95,7 @@ inline int Board::getDelta(const std::vector<int>& g, int tile,
     }
     return res;
 
+    /*
     return std::transform_reduce(
         std::execution::seq, g.cbegin() + offset + 1,
         g.cbegin() + offset + WIDTH + 1, delta, std::plus<>(),
@@ -106,7 +107,7 @@ inline int Board::getDelta(const std::vector<int>& g, int tile,
             } else {
                 return 0;
             }
-        });
+        });*/
 }
 
 // Pattern ID, pattern index
