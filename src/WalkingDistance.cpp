@@ -262,10 +262,16 @@ void WalkingDistance::load(const std::vector<int>& goal, int w, int h) {
     edgesDown.resize(width * size);
 
     tableVec.resize(size * (length + 1));
-    file.read(tableVec.data(), sizeof(char) * size * (length + 1));
+    file.read(reinterpret_cast<char*>(tableVec.data()), sizeof(char) * size * (length + 1));
     file.read(reinterpret_cast<char*>(&costs[0]), sizeof(Cost) * size);
     file.read(reinterpret_cast<char*>(&edgesUp[0]), sizeof(Index) * width * size);
     file.read(reinterpret_cast<char*>(&edgesDown[0]), sizeof(Index) * width * size);
+
+    if (file.peek() != EOF ) {
+        DEBUG("not at end of file??");
+        exit(1);
+    }
+
 }
 
 int WalkingDistance::getIndex(const Board& grid, bool alongRow) {

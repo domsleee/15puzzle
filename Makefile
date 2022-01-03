@@ -2,7 +2,7 @@
 ifdef ENV_DEBUG
 	CONDITIONAL_CXX = -g
 else
-	CONDITIONAL_CXX = -O2
+	CONDITIONAL_CXX = -O2 -g
 endif
 
 
@@ -11,7 +11,7 @@ CXX = g++-11
 CXXFLAGS = -std=c++17 -Wall $(CONDITIONAL_CXX) -m64
 LIBS := -ltbb -lprocps
 ifeq ($(UNAME), Darwin)
-LIBS := #-lprofiler -L/opt/homebrew/Cellar/gperftools/2.9.1_1/lib
+LIBS := -ltcmalloc -L/opt/homebrew/Cellar/gperftools/2.9.1_1/lib
 endif
 
 SRC_DIR := src
