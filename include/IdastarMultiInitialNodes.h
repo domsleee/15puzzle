@@ -19,7 +19,7 @@ public:
         std::vector<Direction> path;
     };
 
-    std::vector<InitialNode> getInitialNodes2(const B& start, int targetNodes);
+    std::vector<InitialNode> getInitialNodes2(const B& start, const std::vector<int> &solution, int targetNodes);
 };
 
 

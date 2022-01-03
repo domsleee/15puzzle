@@ -48,6 +48,4 @@ struct StringVectorCompare {
     }
 };
 
-std::vector<int> getSolvedGrid(int width, int height);
-
 #endif  // UTIL_H

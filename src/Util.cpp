@@ -124,13 +124,3 @@ bool readWordsFromFile(std::string filename, std::unordered_set<std::string> &wo
     while (fin >> s) words.insert(s);
     return true;
 }
-
-std::vector<int> getSolvedGrid(int width, int height) {
-    int size = width * height;
-    std::vector<int> res(size);
-    for (int i = 0; i < size; ++i) {
-        res[i] = i+1;
-    }
-    res[size-1] = 0;
-    return res;
-}

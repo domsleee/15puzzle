@@ -49,15 +49,14 @@ std::string gridHash(const std::vector<int> &grid) {
 }
 
 template <class B>
-std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> IdastarMultiInitialNodes<B>::getInitialNodes2(const B& start, int targetNodes) {
+std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> IdastarMultiInitialNodes<B>::getInitialNodes2(const B& start, const std::vector<int>& solution, int targetNodes) {
     std::unordered_set<std::string> seen;
     std::unordered_map<std::string, std::pair<Direction, std::string>> pred;
 
     std::queue<BFSNodeWithNumSucc<B>> q;
     q.push({fsm, 0, start, 0});
 
-    auto solvedGrid = getSolvedGrid(start.WIDTH, start.HEIGHT);
-    auto solvedHash = gridHash(solvedGrid);
+    auto solvedHash = gridHash(solution);
 
     while (!q.empty()) {
         auto top = q.front();

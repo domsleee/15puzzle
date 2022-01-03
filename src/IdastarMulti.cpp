@@ -29,7 +29,12 @@ constexpr int RESULT_NOFIND = 55;
 constexpr int RESULT_FOUND = 56;
 
 template <class B>
-IdastarMulti<B>::IdastarMulti(StateMachineSimple &fsm) : fsm(fsm), limit(0), minCost(0), nodes(0) {}
+IdastarMulti<B>::IdastarMulti(StateMachineSimple &fsm, const std::vector<int>& solution)
+    : fsm(fsm),
+      solution(solution),
+      limit(0),
+      minCost(0),
+      nodes(0) {}
 
 template <class B>
 std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
@@ -50,7 +55,7 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
     DEBUG("get initial nodes");
     START_TIMER(INITIAL_NODES);
     auto targetWorkers = 62; // weird?
-    auto initialNodes = initialNodeGetter.getInitialNodes2(start, 50 * targetWorkers);
+    auto initialNodes = initialNodeGetter.getInitialNodes2(start, solution, 50 * targetWorkers);
     END_TIMER(INITIAL_NODES);
 
     DEBUG("num initialNodes: " << initialNodes.size());

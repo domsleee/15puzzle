@@ -11,6 +11,7 @@ template <class B>
 class IdastarMulti {
 private:
     StateMachineSimple &fsm;
+    std::vector<int> solution;
     int limit, minCost;
     long long nodes;
 
@@ -30,7 +31,7 @@ private:
 
 
 public:
-    IdastarMulti(StateMachineSimple &fsm);
+    IdastarMulti(StateMachineSimple &fsm, const std::vector<int>& solution);
 
     std::vector<Direction> solve(const B& start);
 };

@@ -173,7 +173,7 @@ void solve(const std::vector<int>& solution, int width, int height,
     // Setup search
     if (InputParser::runParallel()) {
         DEBUG("Running parallel");
-        IdastarMulti<B> search(fsm);
+        IdastarMulti<B> search(fsm, solution);
         solveWithSearch<IdastarMulti<B>, B>(search, solution, width, height, grids, fsm);
     } else {
         DEBUG("Running single threaded");
