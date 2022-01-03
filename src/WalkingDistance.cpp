@@ -204,21 +204,14 @@ void save(const std::string& filename) {
     file.write(reinterpret_cast<char*>(&size), sizeof(size));
 
     auto length = width * height;
-    tableVec.resize(size * (length + 1));
+    tableVec.resize(size * length);
     for (auto i = 0; i < size; ++i) {
-        strcpy(&tableVec[i * (length+1)], tables[i].c_str());
+        memcpy(&tableVec[i * length], tables[i].c_str(), length);
     }
-    for (auto& table : tables) {
-        file.write(table.c_str(), length + 1);
-    }
-
-    file.write(reinterpret_cast<char*>(&costs[0]), sizeof(Cost) * size);
-    file.write(reinterpret_cast<char*>(&edgesUp[0]), sizeof(Index) * width * size);
-    file.write(reinterpret_cast<char*>(&edgesDown[0]), sizeof(Index) * width * size);
-
-    // only used for generate
-    tableIndexLookup.clear();
-    tables.clear();
+    file.write(reinterpret_cast<char*>(tableVec.data()), length * size);
+    file.write(reinterpret_cast<char*>(costs.data()), sizeof(Cost) * size);
+    file.write(reinterpret_cast<char*>(edgesUp.data()), sizeof(Index) * width * size);
+    file.write(reinterpret_cast<char*>(edgesDown.data()), sizeof(Index) * width * size);
 }
 
 void WalkingDistance::load(const std::vector<int>& goal, int w, int h) {
@@ -261,31 +254,41 @@ void WalkingDistance::load(const std::vector<int>& goal, int w, int h) {
     edgesUp.resize(width * size);
     edgesDown.resize(width * size);
 
-    tableVec.resize(size * (length + 1));
-    file.read(reinterpret_cast<char*>(tableVec.data()), sizeof(char) * size * (length + 1));
+    tableVec.resize(size * length);
+    file.read(reinterpret_cast<char*>(tableVec.data()), sizeof(char) * size * length);
     file.read(reinterpret_cast<char*>(&costs[0]), sizeof(Cost) * size);
     file.read(reinterpret_cast<char*>(&edgesUp[0]), sizeof(Index) * width * size);
     file.read(reinterpret_cast<char*>(&edgesDown[0]), sizeof(Index) * width * size);
 
-    if (file.peek() != EOF ) {
-        DEBUG("not at end of file??");
-        exit(1);
-    }
+    assertm(file.peek() == EOF, "should be at end of file");
 
+    // only used for generate
+    tableIndexLookup.clear();
+    tables.clear();
 }
 
 int WalkingDistance::getIndex(const Board& grid, bool alongRow) {
     auto hash = calculateHash(calculateTable(grid, alongRow));
 
-    // Convert to index
     int index = -1;
+    auto length = height * width;
     for (std::size_t i = 0; i < costs.size(); ++i) {
-        if (strcmp(&tableVec[i * (height * width + 1)], hash.c_str()) == 0) {
+        if (memcmp(&tableVec[i * length], hash.c_str(), length) == 0) {
             index = i;
             break;
         }
     }
     assertm(index != -1, "Missing walking distance table");
+
+    // verify
+    /*auto it = std::find(tables.cbegin(), tables.cend(), hash);
+    assertm(it != tables.end(), "Missing walking distance table");
+    auto index2 = std::distance(tables.cbegin(), it);
+
+    if (index != index2) {
+        DEBUG("mismatch " << index << " vs " << index2);
+        exit(1);
+    }*/
 
     return index;
 }
