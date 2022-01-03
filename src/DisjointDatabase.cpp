@@ -113,9 +113,7 @@ std::vector<Cost> loadPattern(const Grid& pattern, const std::string& filename,
     std::vector<Cost> cost(size);
 
     // Read database from file
-    for (auto& c : cost) {
-        file.read(reinterpret_cast<char*>(&c), sizeof(c));
-    }
+    file.read(reinterpret_cast<char*>(&cost[0]), size * sizeof(Cost));
 
     return cost;
 }
