@@ -1,3 +1,4 @@
+#pragma once
 #include "BoardRaw.h"
 #include "Util.h"
 #include <memory>
@@ -32,6 +33,15 @@ struct BoardRep {
     friend bool operator!=(const BoardRep &lhs, const BoardRep &rhs) {
         return !(lhs == rhs);
     }
+
+    friend bool operator<(const BoardRep &a, const BoardRep& b) {
+        auto arraySize = a.getArraySize();
+        for (auto i = 0; i < arraySize; ++i) {
+            if (a.grid[i] < b.grid[i]) return true;
+            else if (a.grid[i] > b.grid[i]) return false;
+        }
+        return false;
+    }
 };
 
 
@@ -44,17 +54,5 @@ struct std::hash<BoardRep> {
             seed ^= boardRep.grid[i] + 0x9e3779b9 + (seed << 6) + (seed >> 2);
         }
         return seed;
-    }
-};
-
-template <>
-struct std::less<BoardRep> {
-    bool operator()(const BoardRep &a, const BoardRep &b) const {
-        auto arraySize = a.getArraySize();
-        for (auto i = 0; i < arraySize; ++i) {
-            if (a.grid[i] < b.grid[i]) return true;
-            else if (a.grid[i] > b.grid[i]) return false;
-        }
-        return false;
     }
 };

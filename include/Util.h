@@ -48,4 +48,6 @@ struct StringVectorCompare {
     }
 };
 
+Direction pathMoved(const BoardRaw& a, const BoardRaw& b);
+
 #endif  // UTIL_H

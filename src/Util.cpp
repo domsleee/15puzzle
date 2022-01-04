@@ -58,6 +58,7 @@ Direction inverse(Direction move) {
             return Direction::L;
         default:
             assertm(0, "Unknown direction in inverse");
+            exit(1);
     }
 }
 
@@ -82,6 +83,7 @@ Direction charToDirection(char move) {
         case 'r': return Direction::R;
         case 'l': return Direction::L;
     }
+    DEBUG("char given " << move);
     assertm(0, "Unknown move in charToDirection");
 }
 
@@ -123,4 +125,19 @@ bool readWordsFromFile(std::string filename, std::unordered_set<std::string> &wo
     std::string s;
     while (fin >> s) words.insert(s);
     return true;
+}
+
+Direction pathMoved(const BoardRaw& a, const BoardRaw& b)
+{
+    auto diff = a.getBlankTile() - b.getBlankTile();
+    switch(diff) {
+        case 1: return Direction::L;
+        case -1: return Direction::R;
+        default: {
+            if (diff == -b.getWidth()) return Direction::U;
+            else if (diff == b.getWidth()) return Direction::D;
+            DEBUG("BLANKS " << a.getBlankTile() << " VS " << b.getBlankTile() << ", diff " << diff << " width" << a.getWidth());
+            assertm(0, "no direction found??");
+        }
+    }
 }
