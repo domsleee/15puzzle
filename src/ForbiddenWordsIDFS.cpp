@@ -16,6 +16,7 @@ ForbiddenWordsIDFS::ForbiddenWordsIDFS(long long depthLimit, int width, int heig
       width(width),
       height(height)
 {
+    pathCount = 0;
 }
 
 
@@ -41,14 +42,15 @@ std::unordered_set<std::string> ForbiddenWordsIDFS::getForbiddenWords() {
     auto startBoard = getExploreBoard(width);
     DEBUG("exploring " << startBoard);
 
-
     forbiddenWords = {};
     boardToPaths = {};
+    pathCount = 0;
     int both = 0, throwout = 0;
     for (auto limit = 1; limit <= depthLimit; ++limit) {
         DEBUG("paths length limit: " << limit << ", size: " << forbiddenWords.size());
         auto fsm = BuildFSMFromStrings({forbiddenWords.begin(), forbiddenWords.end()});
         boardToPaths.clear();
+        pathCount = 0;
         fsm.undoMove(0);
 
         std::string path;
@@ -94,8 +96,13 @@ void ForbiddenWordsIDFS::dfs(BoardRaw &board, std::string &path, int limit, Stat
     }
     
     auto boardRep = BoardRep(board);
-    if (!boardToPaths.count(boardRep)) boardToPaths[boardRep] = {};
+    if (!boardToPaths.count(boardRep)) {
+        boardToPaths[boardRep] = {};
+        if (boardToPaths.size() % 10000 == 0) DEBUG("key count " << boardToPaths.size() << ", " << pathCount);
+    }
     boardToPaths.at(boardRep).push_back(path);
+    pathCount += path.size();
+
 
     if (path.size() == limit) {
         return;
