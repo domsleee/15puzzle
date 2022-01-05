@@ -314,36 +314,6 @@ std::unordered_set<std::string> debugInsertStringWordList = {};
 
 #include <fstream>
 
-std::vector<int> getCriticalPoints(std::string s) {
-    std::vector<int> res;
-    auto r = 0, c = 0;
-    auto mr = 0, Mr = 0, mc = 0, Mc = 0;
-    for (auto ch: s) {
-        auto dir = charToDirection(ch);
-        switch(dir) {
-            case Direction::L: c--; break;
-            case Direction::R: c++; break;
-            case Direction::U: r--; break;
-            case Direction::D: r++; break;
-            default: assertm(0, "unknonw.");
-        }
-        mr = std::min(mr, r);
-        Mr = std::max(Mr, r);
-        mc = std::min(mc, c);
-        Mc = std::max(Mc, c);
-    }
-    return {mr, Mr, mc, Mc};
-}
-
-// is `b` a subrange of `a`
-bool isSubRange(const std::vector<int> &a, const std::vector<int> &b) {
-    return b[0] >= a[0]
-        && b[1] <= a[1]
-        && b[2] >= a[2]
-        && b[3] <= a[3];
-}
-
-
 // a-b
 std::unordered_set<int> setDiff(const std::unordered_set<int> &a, const std::unordered_set<int> &b) {
     std::unordered_set<int> res(a.begin(), a.end());

@@ -20,7 +20,6 @@ std::map<char, double> probs = {
     {'c', 0.0887/4.0},
     {'s', 0.4614/8.0},
     {'m', 0.4498/4.0}
-
 };
 
 std::vector<int> getCriticalPoints(std::string s) {
