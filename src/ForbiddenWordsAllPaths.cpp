@@ -97,6 +97,14 @@ std::unordered_set<std::string> ForbiddenWordsAllPaths::getForbiddenWords(BoardR
     return {};
 }
 
+std::string pathToString(const Path &path) {
+    std::string str = "";
+    for (int i = path.size()-1; i >= 0; --i) {
+        str.push_back(directionToChar(path[i]));
+    }
+    return str;
+}
+
 void ForbiddenWordsAllPaths::dealWithBoards(std::vector<BoardRep> &boardsToDealWith, PredType &pred) {
     std::sort(boardsToDealWith.begin(), boardsToDealWith.end());
     std::unique(boardsToDealWith.begin(), boardsToDealWith.end());
@@ -111,10 +119,7 @@ void ForbiddenWordsAllPaths::dealWithBoards(std::vector<BoardRep> &boardsToDealW
         std::unordered_set<Path> pathSet = {paths.begin(), paths.end()};
         std::unordered_set<Path> pathsToRemove = {};
         for (const auto &path: pathSet) {
-            std::string str = "";
-            for (int i = path.size()-1; i >= 0; --i) {
-                str.push_back(directionToChar(path[i]));
-            }
+            auto str = pathToString(path);
             if (t.hasAnySuffix(str)) {
                 pathsToRemove.insert(path);
             }
@@ -124,9 +129,10 @@ void ForbiddenWordsAllPaths::dealWithBoards(std::vector<BoardRep> &boardsToDealW
         if (paths.size() > 1) {
             DEBUG("paths size " << paths.size());
         }
+        forbiddenWords.push_back(pathToString(paths[0]));
+        DEBUG("forbidden words size " << forbiddenWords.size());
     }
     boardsToDealWith.clear();
-
 }
 
 
