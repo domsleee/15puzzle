@@ -18,11 +18,10 @@ FSMBuilder::FSMBuilder(int width, int height, int maxDepth):
     {}
 
 StateMachineSimple FSMBuilder::build() {
-    ForbiddenWordsIDFS(7, width, height).getForbiddenWords();
-
     START_TIMER(forbiddenWords);
-    auto forbiddenWords = ForbiddenWordsFast(maxDepth, width, height);
-    forbiddenWords.printMessage();
+    //auto forbiddenWords = ForbiddenWordsFast(maxDepth, width, height);
+    auto forbiddenWords = ForbiddenWordsIDFS(maxDepth, width, height);
+    //forbiddenWords.printMessage();
     auto strings = forbiddenWords.getForbiddenWords();
     DEBUG("found " << strings.size() << " forbidden strings");
     END_TIMER(forbiddenWords);
