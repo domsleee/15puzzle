@@ -17,6 +17,7 @@
 #include "../include/WalkingDistance.h"
 #include "../include/FSMBuilder.h"
 #include "../include/Tests.h"
+#include "../include/BranchFactor.h"
 
 // Dynamic board size
 // Dynamic database pattern
@@ -208,6 +209,11 @@ int main(int argc, const char* argv[]) {
     }
     auto fsmBuilder = FSMBuilder(width, height, fsmDepth);
     auto fsm = fsmBuilder.build();
+
+    if (InputParser::evaluateBranchingFactor()) {
+        evaluateBranchFactor(fsm, width, height);
+        return 0;
+    }
 
     // Setup database
     START_TIMER(db);

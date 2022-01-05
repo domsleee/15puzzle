@@ -5,6 +5,7 @@
 
 #include "../include/AhoCorasick.h"
 #include "../include/ForbiddenWordsUtil.h"
+#include "../include/InputParser.h"
 
 #include <algorithm>
 
@@ -19,8 +20,27 @@ ForbiddenWordsIDFS::ForbiddenWordsIDFS(long long depthLimit, int width, int heig
 
 
 std::unordered_set<std::string> ForbiddenWordsIDFS::getForbiddenWords() {
+    auto strFile = "databases/fsm-idfs-" + std::to_string(width) + "x" + std::to_string(height) + "-" + std::to_string(depthLimit);
+    std::unordered_set<std::string> setOfWords;
+
+    if (InputParser::fsmFileExists()) {
+        auto strFile = InputParser::getFSMFile();
+        if (!readWordsFromFile(strFile, setOfWords)) {
+            DEBUG("could not read from file " << strFile);
+            exit(1);
+        };
+        DEBUG("Loaded FSM from file " << strFile << " #words: " << setOfWords.size());
+        return setOfWords;
+    }
+
+    if (readWordsFromFile(strFile, setOfWords)) {
+        DEBUG("Loaded FSM from file " << strFile << " #words: " << setOfWords.size());
+        return setOfWords;
+    }
+
     auto startBoard = getExploreBoard(width);
     DEBUG("exploring " << startBoard);
+
 
     forbiddenWords = {};
     boardToPaths = {};
@@ -35,54 +55,6 @@ std::unordered_set<std::string> ForbiddenWordsIDFS::getForbiddenWords() {
         dfs(startBoard, path, limit, fsm);
 
         for (const auto &[boardRep, paths]: boardToPaths) {
-            //DEBUG("OK");
-            /*if (paths.size() >= 2) {
-                //DEBUG("PATHS " << paths.size() << ": " << boardRep.toBoard());
-                if (limit == 2) {
-                    for (auto i = 1; i < paths.size(); ++i) forbiddenWords.push_back(paths[i]);
-                } else {
-                    //for (auto p: paths) DEBUG(p << ": " << toStr(getCriticalPoints(p)));
-                    if (paths.size() == 2) {
-                        auto bounding0 = getCriticalPoints(paths[0]);
-                        auto bounding1 = getCriticalPoints(paths[1]);
-                        if (paths[0].size() != paths[1].size()) {
-                            // we must take the longer path
-                            auto mPath = paths[0].size() < paths[1].size() ? paths[0] : paths[1];
-                            auto MPath = paths[0].size() < paths[1].size() ? paths[1] : paths[0];
-
-                            if (isSubRange(getCriticalPoints(mPath), getCriticalPoints(MPath))) {
-                                forbiddenWords.push_back(MPath);
-                            } else {
-                                DEBUG("not subrange.." << mPath << " " << getCriticalPoints(mPath) << ", " << MPath << " " << getCriticalPoints(MPath));
-                                //exit(1);
-                            }
-
-                        } else {
-                            auto sub01 = isSubRange(bounding0, bounding1);
-                            auto sub10 = isSubRange(bounding1, bounding0);
-
-                            if (sub01 && sub10) {
-                                forbiddenWords.push_back(paths[1]);
-                                both++;
-                            }
-                            else if (sub01) {
-                                forbiddenWords.push_back(paths[1]);
-                            } else if (sub10) {
-                                forbiddenWords.push_back(paths[0]);
-                            } else {
-                                DEBUG("NEITHER ARE SUBRANGE!");
-                               // exit(1);
-                            }
-                        }
-
-                        
-                    } else {
-                        DEBUG("NOT IMPLEMENTED: " << paths.size());
-                        throwout += paths.size();
-                        //throw "not implemented";
-                    }
-                }
-            }*/
             if (paths.size() < 2) continue;
 
             auto partitions = get2Partitions(paths);
@@ -106,18 +78,11 @@ std::unordered_set<std::string> ForbiddenWordsIDFS::getForbiddenWords() {
     //for (auto &s: forbiddenWords) std::cout << s << '\n';
     DEBUG("FORBIDDEN WORDS SIZE " << forbiddenWords.size() << ", throwout: " << throwout << ", both: " << both);
 
-    return {forbiddenWords.begin(), forbiddenWords.end()};
+    setOfWords = {forbiddenWords.begin(), forbiddenWords.end()};
+    writeWordsToFile(strFile, setOfWords);
+
+    return setOfWords;
 }
-
-// two partitions
-// FORBIDDEN
-// PERMITTED
-
-// for every FORBIDDEN operator, there must be at least one PERMITTED operator which has a
-// length less than or equal to it. The range of the forbidden operator must be a subrange to the
-// range formed by the union of the permitted operator strings.
-
-
 
 void ForbiddenWordsIDFS::dfs(BoardRaw &board, std::string &path, int limit, StateMachine &fsm) {
     auto range = getCriticalPoints(path); 

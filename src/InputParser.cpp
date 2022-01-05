@@ -49,6 +49,10 @@ bool InputParser::runParallel() {
     return optionExists("-p") || optionExists("--parallel");
 }
 
+bool InputParser::evaluateBranchingFactor() {
+    return optionExists("-e") || optionExists("--evaluate");
+}
+
 std::string InputParser::getDatabase() {
     auto args = getMultipleArgs({"-d", "--database"});
     if (args.empty()) {
