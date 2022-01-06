@@ -3,6 +3,14 @@
 ## deps
 `libprocps-dev`
 
+## profiling
+https://gperftools.github.io/gperftools/cpuprofile.html
+
+```
+pprof --web bin/puzzle out.prof
+~/go/bin/pprof -top ./bin/puzzle prof/out.prof
+```
+
 
 This is a solver for the generalized 15-puzzle written in C++. It can optimally solve any p x q sized board, although it becomes very slow for boards larger than 4 x 4, and some 4 x 4 boards with long solutions.
 

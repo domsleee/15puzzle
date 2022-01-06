@@ -16,15 +16,17 @@ struct BoardRep {
 
     BoardRep& operator=(const BoardRep& other) {
         boardSize = other.boardSize;
-        grid.reset(new uint8_t[getArraySize()]);
-        for (auto i = 0; i < getArraySize(); ++i) grid[i] = other.grid[i];
+        auto arrSize = getArraySize();
+        grid.reset(new uint8_t[arrSize]);
+        for (auto i = 0; i < arrSize; ++i) grid[i] = other.grid[i];
         return *this;
     }
 
     int getArraySize() const { return (getNumBitsPerTile(boardSize) * boardSize + 7) / 8; }
 
     friend bool operator==(const BoardRep &lhs, const BoardRep &rhs) {
-        for (auto i = 0; i < lhs.getArraySize(); ++i) {
+        auto arrSize = lhs.getArraySize();
+        for (auto i = 0; i < arrSize; ++i) {
             if (lhs.grid[i] != rhs.grid[i]) return false;
         }
         return true;
@@ -48,8 +50,9 @@ template<>
 struct std::hash<BoardRep> {
     std::size_t operator()(BoardRep const& boardRep) const noexcept {
         // see https://stackoverflow.com/questions/20511347/a-good-hash-function-for-a-vector
-        std::size_t seed = boardRep.getArraySize();
-        for(auto i = 0; i < boardRep.getArraySize(); ++i) {
+        std::size_t arrSize = boardRep.getArraySize();
+        std::size_t seed = arrSize;
+        for(std::size_t i = 0; i < arrSize; ++i) {
             seed ^= boardRep.grid[i] + 0x9e3779b9 + (seed << 6) + (seed >> 2);
         }
         return seed;

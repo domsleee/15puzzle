@@ -61,23 +61,18 @@ void ForbiddenWordsIDFS::dfs(BoardRaw &board, std::string &path, int limit, Stat
 
     if (isCleaning) {
         if (boardsWeCareAbout.count(boardRep)) {
-            if (!boardToPaths.count(boardRep)) {
-                boardToPaths[boardRep] = {};
-            }
-            auto &vec = boardToPaths.at(boardRep);
+            auto &vec = boardToPaths.try_emplace(boardRep, StringVec()).first->second;
             auto compPath = CompressedPath(path);
             if (std::find(vec.begin(), vec.end(), compPath) == vec.end()) {
-                vec.push_back(compPath);
+                vec.emplace_back(compPath);
                 pathCount += path.size();
             }
         }
     } else {
-        if (!boardToPaths.count(boardRep)) {
-            boardToPaths[boardRep] = {};
-        }
-        auto &vec = boardToPaths.at(boardRep);
+        auto &vec = boardToPaths.try_emplace(boardRep, StringVec()).first->second;
         auto compPath = CompressedPath(path);
-        vec.push_back(compPath);
+        vec.emplace_back(compPath);
+        pathCount += path.size();
 
         if (shouldCleanUp()) {
             clearMemory(limit, fsm);
@@ -117,8 +112,8 @@ void ForbiddenWordsIDFS::processAndClearBoardToPaths() {
 
             auto best = partitionPairs[0];
             // no invalid partition... the forbiddenwords can be empty
-            for (auto &s: best.second.first) {
-                forbiddenWords.insert(s.decompress());
+            for (const auto &s: best.second.first) {
+                forbiddenWords.emplace(s.decompress());
             }
         }
 

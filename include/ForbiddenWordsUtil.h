@@ -48,7 +48,7 @@ struct CompressedPath {
         vec.assign(vecSize, 0);
 
         for (std::size_t i = 0; i < path.size(); ++i) {
-            auto ind = i / 4;
+            auto ind = i/4;
             auto subInd = i%4;
             vec[ind] |= myCharToInt(path[i]) << (6 - subInd*2);
         }
