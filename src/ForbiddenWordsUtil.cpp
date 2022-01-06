@@ -22,16 +22,12 @@ Range getCriticalPoints(const std::string &s) {
     auto mr = 0, Mr = 0, mc = 0, Mc = 0;
     for (auto ch: s) {
         switch(ch) {
-            case 'l': c--; break;
-            case 'r': c++; break;
-            case 'u': r--; break;
-            case 'd': r++; break;
-            default: throw "What";
+            case 'l': c--; mc = std::min(mc, c); break;
+            case 'r': c++; Mc = std::max(Mc, c); break;
+            case 'u': r--; mr = std::min(mr, r); break;
+            case 'd': r++; Mr = std::max(Mr, r); break;
+            default: throw "what";
         }
-        mr = std::min(mr, r);
-        Mr = std::max(Mr, r);
-        mc = std::min(mc, c);
-        Mc = std::max(Mc, c);
     }
     return {mr, Mr, mc, Mc};
 }

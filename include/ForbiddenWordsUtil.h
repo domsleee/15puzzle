@@ -84,6 +84,14 @@ struct CompressedPath {
         assertm(0, "unknown int");
     }
 
+    friend bool operator==(const CompressedPath &lhs, const CompressedPath &rhs) {
+        if (lhs.size != rhs.size) return false;
+        for (std::size_t i = 0; i < lhs.vec.size(); ++i) {
+            if (lhs.vec[i] != rhs.vec[i]) return false;
+        }
+        return true;
+    }
+
     bool operator<(const CompressedPath &other) const {
         if (size != other.size) return size < other.size;
         for (std::size_t i = 0; i < vec.size(); ++i) {

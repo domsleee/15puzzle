@@ -37,8 +37,7 @@ struct BoardRep {
     friend bool operator<(const BoardRep &a, const BoardRep& b) {
         auto arraySize = a.getArraySize();
         for (auto i = 0; i < arraySize; ++i) {
-            if (a.grid[i] < b.grid[i]) return true;
-            else if (a.grid[i] > b.grid[i]) return false;
+            if (a.grid[i] != b.grid[i]) return a.grid[i] < b.grid[i];
         }
         return false;
     }

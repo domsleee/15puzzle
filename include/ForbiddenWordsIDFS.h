@@ -11,12 +11,15 @@
 struct ForbiddenWordsIDFS {
     long long depthLimit;
     int width, height;
-    long long pathCount;
-    std::vector<std::string> forbiddenWords;
+    long long pathCount, dfsCt;
+    std::unordered_set<std::string> forbiddenWords;
+    std::set<BoardRep> boardsWeCareAbout;
     std::map<BoardRep, std::vector<CompressedPath>> boardToPaths;
 
     ForbiddenWordsIDFS(long long depthLimit, int width, int height);
     std::unordered_set<std::string> getForbiddenWords();
     void dfs(BoardRaw &board, std::string &path, int limit, StateMachine &fsm);
     void processAndClearBoardToPaths();
+    void clearMemory(int limit, StateMachine &fsm);
+    bool shouldCleanUp();
 };

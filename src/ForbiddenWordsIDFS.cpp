@@ -17,6 +17,8 @@ ForbiddenWordsIDFS::ForbiddenWordsIDFS(long long depthLimit, int width, int heig
       height(height)
 {
     pathCount = 0;
+    dfsCt = 0;
+    boardsWeCareAbout = {};
 }
 
 
@@ -33,37 +35,54 @@ std::unordered_set<std::string> ForbiddenWordsIDFS::getForbiddenWords() {
     processAndClearBoardToPaths();
     for (auto limit = 1; limit <= depthLimit; ++limit) {
         DEBUG("paths length limit: " << limit << ", size: " << forbiddenWords.size());
-        auto fsm = BuildFSMFromStrings({forbiddenWords.begin(), forbiddenWords.end()});
+        auto fsm = BuildFSMFromStrings(forbiddenWords);
         
         fsm.undoMove(0);
         std::string path;
         dfs(startBoard, path, limit, fsm);
+        clearMemory(limit, fsm);
         processAndClearBoardToPaths();
     }
 
     DEBUG("FORBIDDEN WORDS SIZE " << forbiddenWords.size());
-    std::sort(forbiddenWords.begin(), forbiddenWords.end(), StringVectorCompare());
-    //for (auto &s: forbiddenWords) std::cout << s << '\n';
-
-    std::unordered_set<std::string> setOfWords = {forbiddenWords.begin(), forbiddenWords.end()};
-    writeWordsToFile(strFile, setOfWords);
-
-    return setOfWords;
+    writeWordsToFile(strFile, forbiddenWords);
+    return forbiddenWords;
 }
 
 void ForbiddenWordsIDFS::dfs(BoardRaw &board, std::string &path, int limit, StateMachine &fsm) {
+    dfsCt++;
     auto range = getCriticalPoints(path); 
     if (range.Mr - range.mr >= width || range.Mc - range.mc >= width) {
         return;
     }
     
     auto boardRep = BoardRep(board);
-    if (!boardToPaths.count(boardRep)) {
-        boardToPaths[boardRep] = {};
-        if (boardToPaths.size() % 10000 == 0) DEBUG("key count " << boardToPaths.size() << ", " << pathCount);
+    auto isCleaning = boardsWeCareAbout.size() > 0;
+
+    if (isCleaning) {
+        if (boardsWeCareAbout.count(boardRep)) {
+            if (!boardToPaths.count(boardRep)) {
+                boardToPaths[boardRep] = {};
+            }
+            auto &vec = boardToPaths.at(boardRep);
+            auto compPath = CompressedPath(path);
+            if (std::find(vec.begin(), vec.end(), compPath) == vec.end()) {
+                vec.push_back(compPath);
+                pathCount += path.size();
+            }
+        }
+    } else {
+        if (!boardToPaths.count(boardRep)) {
+            boardToPaths[boardRep] = {};
+        }
+        auto &vec = boardToPaths.at(boardRep);
+        auto compPath = CompressedPath(path);
+        vec.push_back(compPath);
+
+        if (shouldCleanUp()) {
+            clearMemory(limit, fsm);
+        }
     }
-    boardToPaths.at(boardRep).push_back(CompressedPath(path));
-    pathCount += path.size();
 
     if (path.size() == static_cast<std::size_t>(limit)) {
         return;
@@ -91,19 +110,56 @@ void ForbiddenWordsIDFS::processAndClearBoardToPaths() {
         if (paths.size() >= 2) {
             auto partitions = get2Partitions(paths);
             std::vector<std::pair<double, TwoPartition>> partitionPairs;
-            for (auto &partition: partitions) {
+            for (const auto &partition: partitions) {
                 partitionPairs.push_back({getScore(partition, width), partition});
             }
             std::sort(partitionPairs.begin(), partitionPairs.end(), std::greater<std::pair<double, TwoPartition>>());
 
             auto best = partitionPairs[0];
             // no invalid partition... the forbiddenwords can be empty
-            for (auto &s: best.second.first) forbiddenWords.push_back(s.decompress());
+            for (auto &s: best.second.first) {
+                forbiddenWords.insert(s.decompress());
+            }
         }
 
         boardToPaths.erase(boardRep);
     }
+    DEBUG("after clearing... #words: " << forbiddenWords.size());
     pathCount = 0;
+}
+
+void ForbiddenWordsIDFS::clearMemory(int limit, StateMachine &fsm) {
+    for (const auto &[boardRep, paths]: boardToPaths) {
+        boardsWeCareAbout.insert(boardRep);
+    }
+    DEBUG("clearing memory..." << boardsWeCareAbout.size() << " boards with limit " << limit);
+
+    auto oldFsmState = fsm.state;
+    fsm.undoMove(0);
+    auto startBoard = getExploreBoard(width);
+    std::string path = "";
+    dfsCt = 0;
+    dfs(startBoard, path, limit, fsm);
+    DEBUG("dfsCt: " << dfsCt);
+    fsm.undoMove(oldFsmState);
+    processAndClearBoardToPaths();
+    boardsWeCareAbout.clear();
+}
+
+bool ForbiddenWordsIDFS::shouldCleanUp() {
+    if (boardsWeCareAbout.size() > 0) return false;
+
+    long long pathMemoryEstimate = (pathCount * 2 + 7) / 8 + (4 * pathCount/15);
+    auto exploreWidth = width*2-1;
+    auto length = exploreWidth * exploreWidth;
+    long long boardRepMemoryEstimate = boardToPaths.size() * (4 + length / 2);
+
+    long long memoryEstimation = pathMemoryEstimate + boardRepMemoryEstimate; // in bytes
+    const long long tenGB = (long long)2 * 1000 * 1000 * 1000;
+    if (memoryEstimation > tenGB) {
+        return true;
+    }
+    return false;
 }
 
 BoardRaw getExploreBoard(int width) {
