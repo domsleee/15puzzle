@@ -2,8 +2,12 @@
 #include "../include/BoardRep.h"
 #include "../include/BoardRaw.h"
 #include "../include/Util.h"
+#include "../include/ForbiddenWordsUtil.h"
+
+void TestPaths();
 
 int runTests() {
+    TestPaths();
     std::vector<int> g = {
         24, 23, 22, 21, 20,
         19, 18, 17, 16, 15,
@@ -19,4 +23,11 @@ int runTests() {
 
     DEBUG("all tests passed");
     return 0;
+}
+
+void TestPaths() {
+    std::string path = "llrududrl";
+    auto compressedPath = CompressedPath(path);
+    auto decPath = compressedPath.decompress();
+    assertm(path == decPath, "dec should be the same");
 }

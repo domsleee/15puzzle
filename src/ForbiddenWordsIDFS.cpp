@@ -22,65 +22,30 @@ ForbiddenWordsIDFS::ForbiddenWordsIDFS(long long depthLimit, int width, int heig
 
 std::unordered_set<std::string> ForbiddenWordsIDFS::getForbiddenWords() {
     auto strFile = "databases/fsm-idfs-" + std::to_string(width) + "x" + std::to_string(height) + "-" + std::to_string(depthLimit);
-    std::unordered_set<std::string> setOfWords;
 
-    if (InputParser::fsmFileExists()) {
-        auto strFile = InputParser::getFSMFile();
-        if (!readWordsFromFile(strFile, setOfWords)) {
-            DEBUG("could not read from file " << strFile);
-            exit(1);
-        };
-        DEBUG("Loaded FSM from file " << strFile << " #words: " << setOfWords.size());
-        return setOfWords;
-    }
-
-    if (readWordsFromFile(strFile, setOfWords)) {
-        DEBUG("Loaded FSM from file " << strFile << " #words: " << setOfWords.size());
-        return setOfWords;
-    }
+    auto fsmFile = getFSMWordsFromFile(strFile);
+    if (fsmFile.first == true) return fsmFile.second;
 
     auto startBoard = getExploreBoard(width);
     DEBUG("exploring " << startBoard);
 
     forbiddenWords = {};
-    boardToPaths = {};
-    pathCount = 0;
-    int both = 0, throwout = 0;
+    processAndClearBoardToPaths();
     for (auto limit = 1; limit <= depthLimit; ++limit) {
         DEBUG("paths length limit: " << limit << ", size: " << forbiddenWords.size());
         auto fsm = BuildFSMFromStrings({forbiddenWords.begin(), forbiddenWords.end()});
-        boardToPaths.clear();
-        pathCount = 0;
+        
         fsm.undoMove(0);
-
         std::string path;
         dfs(startBoard, path, limit, fsm);
-
-        for (const auto &[boardRep, paths]: boardToPaths) {
-            if (paths.size() < 2) continue;
-
-            auto partitions = get2Partitions(paths);
-            std::vector<std::pair<double, TwoPartition>> partitionPairs;
-            for (auto &partition: partitions) {
-                partitionPairs.push_back({getScore(partition, width), partition});
-            }
-            std::sort(partitionPairs.begin(), partitionPairs.end(), std::greater<std::pair<double, TwoPartition>>());
-
-            auto best = partitionPairs[0];
-            if (best.first == INVALID_PARTITION) {
-                DEBUG("no valid partition");
-            } else {
-                for (auto &s: best.second.first) forbiddenWords.push_back(s);
-            }
-        }
+        processAndClearBoardToPaths();
     }
 
     DEBUG("FORBIDDEN WORDS SIZE " << forbiddenWords.size());
     std::sort(forbiddenWords.begin(), forbiddenWords.end(), StringVectorCompare());
     //for (auto &s: forbiddenWords) std::cout << s << '\n';
-    DEBUG("FORBIDDEN WORDS SIZE " << forbiddenWords.size() << ", throwout: " << throwout << ", both: " << both);
 
-    setOfWords = {forbiddenWords.begin(), forbiddenWords.end()};
+    std::unordered_set<std::string> setOfWords = {forbiddenWords.begin(), forbiddenWords.end()};
     writeWordsToFile(strFile, setOfWords);
 
     return setOfWords;
@@ -89,9 +54,6 @@ std::unordered_set<std::string> ForbiddenWordsIDFS::getForbiddenWords() {
 void ForbiddenWordsIDFS::dfs(BoardRaw &board, std::string &path, int limit, StateMachine &fsm) {
     auto range = getCriticalPoints(path); 
     if (range.Mr - range.mr >= width || range.Mc - range.mc >= width) {
-        //DEBUG("THROWING OUT" );
-        //DEBUG(path << " " << toStr(vec));
-        //exit(1);
         return;
     }
     
@@ -100,11 +62,10 @@ void ForbiddenWordsIDFS::dfs(BoardRaw &board, std::string &path, int limit, Stat
         boardToPaths[boardRep] = {};
         if (boardToPaths.size() % 10000 == 0) DEBUG("key count " << boardToPaths.size() << ", " << pathCount);
     }
-    boardToPaths.at(boardRep).push_back(path);
+    boardToPaths.at(boardRep).push_back(CompressedPath(path));
     pathCount += path.size();
 
-
-    if (path.size() == limit) {
+    if (path.size() == static_cast<std::size_t>(limit)) {
         return;
     }
 
@@ -122,6 +83,27 @@ void ForbiddenWordsIDFS::dfs(BoardRaw &board, std::string &path, int limit, Stat
         board.undoMove(oldBoard);
         path.pop_back();
     }
+}
+
+void ForbiddenWordsIDFS::processAndClearBoardToPaths() {
+    while (boardToPaths.size() > 0) {
+        const auto [boardRep, paths] = *boardToPaths.begin();
+        if (paths.size() >= 2) {
+            auto partitions = get2Partitions(paths);
+            std::vector<std::pair<double, TwoPartition>> partitionPairs;
+            for (auto &partition: partitions) {
+                partitionPairs.push_back({getScore(partition, width), partition});
+            }
+            std::sort(partitionPairs.begin(), partitionPairs.end(), std::greater<std::pair<double, TwoPartition>>());
+
+            auto best = partitionPairs[0];
+            // no invalid partition... the forbiddenwords can be empty
+            for (auto &s: best.second.first) forbiddenWords.push_back(s.decompress());
+        }
+
+        boardToPaths.erase(boardRep);
+    }
+    pathCount = 0;
 }
 
 BoardRaw getExploreBoard(int width) {

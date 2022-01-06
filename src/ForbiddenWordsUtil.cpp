@@ -1,6 +1,7 @@
 
 #include "../include/ForbiddenWordsUtil.h"
 #include "../include/ForbiddenWordsScore.h"
+#include "../include/InputParser.h"
 
 ValidationRet::ValidationRet(int minBfsLength, int blankLocation, const std::vector<std::string> &stringsLessThanLength)
     : minBfsLength(minBfsLength),
@@ -73,10 +74,12 @@ std::vector<TwoPartition> get2Partitions(const StringVec &strings) {
 // length less than or equal to it, which bounding box is a subrange of the forbidden operator.
 
 double getScore(const TwoPartition &twoPartition, int width) {
-    for (auto &forbiddenWord: twoPartition.first) {
+    for (auto &forbiddenWordComp: twoPartition.first) {
+        auto forbiddenWord = forbiddenWordComp.decompress();
+
         std::vector<std::string> filt;
         for (auto perm: twoPartition.second) {
-            if (perm.size() <= forbiddenWord.size()) filt.push_back(perm);
+            if (perm.decompress().size() <= forbiddenWord.size()) filt.push_back(perm.decompress());
         }
 
         if (filt.size() == 0) return INVALID_PARTITION;
@@ -96,7 +99,26 @@ double getScore(const TwoPartition &twoPartition, int width) {
 
     double score = 0;
     for (auto &forbiddenWord: twoPartition.first) {
-        score += getScore(forbiddenWord, width);
+        score += getScore(forbiddenWord.decompress(), width);
     }
     return score;
+}
+
+std::pair<bool, std::unordered_set<std::string>> getFSMWordsFromFile(const std::string &filename) {
+    std::unordered_set<std::string> setOfWords;
+    if (InputParser::fsmFileExists()) {
+        auto strFile = InputParser::getFSMFile();
+        if (!readWordsFromFile(filename, setOfWords)) {
+            DEBUG("could not read from file " << strFile);
+            exit(1);
+        };
+        DEBUG("Loaded FSM from file " << filename << " #words: " << setOfWords.size());
+        return {true, setOfWords};
+    }
+
+    if (readWordsFromFile(filename, setOfWords)) {
+        DEBUG("Loaded FSM from file " << filename << " #words: " << setOfWords.size());
+        return {true, setOfWords};
+    }
+    return {false, {}};
 }

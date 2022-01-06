@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include "Util.h"
 
 struct ValidationRet {
     int minBfsLength, blankLocation;
@@ -37,14 +38,71 @@ struct Range {
     Range& unionWith(const Range &otherRange);
 };
 
+struct CompressedPath {
+    uint8_t size;
+    std::vector<uint8_t> vec;
+    
+    CompressedPath(const std::string &path) {
+        size = path.size();
+        auto vecSize = ((path.size() * 2) + 7) / 8;
+        vec.assign(vecSize, 0);
+
+        for (std::size_t i = 0; i < path.size(); ++i) {
+            auto ind = i / 4;
+            auto subInd = i%4;
+            vec[ind] |= myCharToInt(path[i]) << (6 - subInd*2);
+        }
+    }
+
+    std::string decompress() const {
+        std::string res(size, 'a');
+        for (std::size_t i = 0; i < size; ++i) {
+            auto subInd = i%4;
+            auto val = (vec[i/4] >> (6 - subInd*2)) & 0b11;
+            res[i] = myIntToChar(val);
+        }
+        return res;
+    }
+
+    int myCharToInt(char c) const {
+        switch(c) {
+            case 'd': return 0;
+            case 'l': return 1;
+            case 'r': return 2;
+            case 'u': return 3;
+        }
+        assertm(0, "unknown char");
+    }
+
+    int myIntToChar(int i) const {
+        switch(i) {
+            case 0: return 'd';
+            case 1: return 'l';
+            case 2: return 'r';
+            case 3: return 'u';
+        }
+        assertm(0, "unknown int");
+    }
+
+    bool operator<(const CompressedPath &other) const {
+        if (size != other.size) return size < other.size;
+        for (std::size_t i = 0; i < vec.size(); ++i) {
+            if (vec[i] != other.vec[i]) return vec[i] < other.vec[i];
+        }
+        return false;
+    }
+};
+
 bool isSubRange(const Range &a, const Range &b);
 Range getCriticalPoints(const std::string &s);
 
-using StringVec = std::vector<std::string>;
+using StringVec = std::vector<CompressedPath>;
 using TwoPartition = std::pair<StringVec, StringVec>;
 std::vector<TwoPartition> get2Partitions(const StringVec &strings); 
 
 const int INVALID_PARTITION = -1;
 double getScore(const TwoPartition &twoPartition, int width);
+
+std::pair<bool, std::unordered_set<std::string>> getFSMWordsFromFile(const std::string &filename);
 
 #endif
