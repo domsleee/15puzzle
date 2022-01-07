@@ -145,13 +145,10 @@ Direction pathMoved(const BoardRaw& a, const BoardRaw& b)
 int numBitsPerTileCache[1024] = {0};
 
 int getNumBitsPerTile(int boardSize) {
-    if (numBitsPerTileCache[boardSize] != 0) return numBitsPerTileCache[boardSize];
-    
-    auto numBits = 1;
-    while (1 << (numBits) < boardSize) {
-        numBits++;
+    if (numBitsPerTileCache[boardSize] != 0) {
+        return numBitsPerTileCache[boardSize];
     }
-    return numBitsPerTileCache[boardSize] = numBits;
+    return numBitsPerTileCache[boardSize] = getNumBitsPerTileConst(boardSize);
 }
 
 int getBitmask(int bitsPerTile) {
