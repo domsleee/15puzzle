@@ -6,7 +6,7 @@
 struct BoardRep {
     BoardRep(const BoardRaw &board);
     BoardRep() {
-        throw "what";
+        assertm(0, "not implemented BoardRep");
     }
     std::unique_ptr<uint8_t[]> grid;
     uint8_t boardSize;

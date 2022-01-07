@@ -99,6 +99,10 @@ struct CompressedPath {
         }
         return false;
     }
+
+    static int getByteEstimate(int maxLength) {
+        return sizeof(void*) + ((maxLength * 2) + 7) / 8;
+    }
 };
 
 bool isSubRange(const Range &a, const Range &b);

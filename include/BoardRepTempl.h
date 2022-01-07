@@ -6,10 +6,18 @@
 template <int WIDTH>
 struct BoardRepTempl {
     BoardRepTempl(const BoardRaw &board);
-    BoardRepTempl() { throw "what"; }
-    std::array<uint8_t, (getNumBitsPerTileConst(WIDTH*WIDTH) * (WIDTH*WIDTH) + 7) / 8> grid;
+    BoardRepTempl(const BoardRaw &board, uint8_t coord);
+    BoardRepTempl() { assertm(0, "Not implemented BoardRepTempl"); }
+
+    static constexpr int arraySize = (getNumBitsPerTileConst(WIDTH*WIDTH) * (WIDTH*WIDTH) + 7) / 8;
+
+    std::array<uint8_t, arraySize> grid;
 
     BoardRaw toBoard() const;
+
+    static int getByteEstimate() {
+        return arraySize;
+    }
 
     template<int WIDTH2>
     friend bool operator==(const BoardRepTempl<WIDTH> &lhs, const BoardRepTempl<WIDTH2> &rhs) {

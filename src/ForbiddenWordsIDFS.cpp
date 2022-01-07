@@ -16,11 +16,13 @@ template <int WIDTH>
 ForbiddenWordsIDFS<WIDTH>::ForbiddenWordsIDFS(long long depthLimit, int width, int height)
     : depthLimit(depthLimit),
       width(width),
-      height(height)
+      height(height),
+      pathCount(0),
+      dfsCount(0),
+      clearCount(0),
+      isCleaning(false),
+      startBoard(getExploreBoard(width))
 {
-    pathCount = 0;
-    dfsCt = 0;
-    boardsWeCareAbout = {};
 }
 
 
@@ -37,13 +39,16 @@ std::unordered_set<std::string> ForbiddenWordsIDFS<WIDTH>::getForbiddenWords() {
     forbiddenWords = {};
     processAndClearBoardToPaths();
     for (auto limit = 1; limit <= depthLimit; ++limit) {
+        clearCount = 0;
         DEBUG("paths length limit: " << limit << ", size: " << forbiddenWords.size());
         auto fsm = BuildFSMFromStrings(forbiddenWords);
         
         fsm.undoMove(0);
         std::string path;
         dfs(startBoard, path, limit, fsm);
-        clearMemory(limit, fsm);
+        if (clearCount > 0) {
+            clearMemory(limit, fsm);
+        }
         processAndClearBoardToPaths();
     }
 
@@ -54,31 +59,33 @@ std::unordered_set<std::string> ForbiddenWordsIDFS<WIDTH>::getForbiddenWords() {
 
 template <int WIDTH>
 void ForbiddenWordsIDFS<WIDTH>::dfs(BoardRaw &board, std::string &path, int limit, StateMachine &fsm) {
-    dfsCt++;
+    dfsCount++;
     auto range = getCriticalPoints(path); 
     if (range.Mr - range.mr >= width || range.Mc - range.mc >= width) {
         return;
     }
     
-    auto boardRep = BoardRepT(board);
-    auto isCleaning = boardsWeCareAbout.size() > 0;
+    auto boardRep = UseSubBoard::value 
+        ? BoardRepT(board, getCoord(board))
+        : BoardRepT(board);
 
     if (isCleaning) {
-        if (boardsWeCareAbout.count(boardRep)) {
-            auto &vec = boardToPaths.try_emplace(boardRep, StringVec()).first->second;
+        if (boardToPaths.count(boardRep)) {
+            auto &vec = boardToPaths.at(boardRep);
             auto compPath = CompressedPath(path);
             if (std::find(vec.begin(), vec.end(), compPath) == vec.end()) {
                 vec.emplace_back(compPath);
-                pathCount += path.size();
+                pathCount++;
             }
         }
     } else {
         auto &vec = boardToPaths.try_emplace(boardRep, StringVec()).first->second;
         auto compPath = CompressedPath(path);
         vec.emplace_back(compPath);
-        pathCount += path.size();
+        pathCount++;
 
         if (shouldCleanUp()) {
+            DEBUG("needs to clear early");
             clearMemory(limit, fsm);
         }
     }
@@ -130,53 +137,109 @@ void ForbiddenWordsIDFS<WIDTH>::processAndClearBoardToPaths() {
 
 template <int WIDTH>
 void ForbiddenWordsIDFS<WIDTH>::clearMemory(int limit, StateMachine &fsm) {
-    for (const auto &[boardRep, paths]: boardToPaths) {
-        boardsWeCareAbout.insert(boardRep);
-    }
-    DEBUG("clearing memory..." << boardsWeCareAbout.size() << " boards with limit " << limit);
+    clearCount++;
+    isCleaning = true;
+    DEBUG("clearing memory..." << boardToPaths.size() << " boards with limit " << limit);
 
     auto oldFsmState = fsm.state;
     fsm.undoMove(0);
     auto startBoard = getExploreBoard(width);
     std::string path = "";
-    dfsCt = 0;
+    dfsCount = 0;
     dfs(startBoard, path, limit, fsm);
-    DEBUG("dfsCt: " << dfsCt);
+    DEBUG("dfsCount: " << dfsCount);
+    isCleaning = false;
     fsm.undoMove(oldFsmState);
     processAndClearBoardToPaths();
-    boardsWeCareAbout.clear();
 }
 
 template <int WIDTH>
 bool ForbiddenWordsIDFS<WIDTH>::shouldCleanUp() {
-    if (boardsWeCareAbout.size() > 0) return false;
+    if (isCleaning) return false;
 
-    long long pathMemoryEstimate = (pathCount * 2 + 7) / 8 + (4 * pathCount/15);
-    auto exploreWidth = width*2-1;
-    auto length = exploreWidth * exploreWidth;
-    long long boardRepMemoryEstimate = boardToPaths.size() * (4 + length / 2);
+    // forbiddenWords
+    const int BTREE_MAP_OVERHEAD = 2;
+    const int PTR_SIZE = sizeof(void*);
+    const int MAP_OVERHEAD = 4;
+    const int VECTOR_OVERHEAD = sizeof(std::size_t) + PTR_SIZE;
+    long long forbiddenWordsEstimate = forbiddenWords.size() * (MAP_OVERHEAD + depthLimit + VECTOR_OVERHEAD);
 
-    long long memoryEstimation = pathMemoryEstimate + boardRepMemoryEstimate; // in bytes
-    const long long tenGB = (long long)2 * 1000 * 1000 * 1000;
+    // boardToPaths
+    long long pathMemoryEstimate = (boardToPaths.size() * VECTOR_OVERHEAD) + (CompressedPath::getByteEstimate(depthLimit) * pathCount);
+    long long boardRepMemoryEstimate = boardToPaths.size() * (BTREE_MAP_OVERHEAD + BoardRepT::getByteEstimate());
+
+    long long memoryEstimation = forbiddenWordsEstimate
+        + pathMemoryEstimate
+        + boardRepMemoryEstimate; // in bytes
+    const long long tenGB = (long long)8 * 1000 * 1000 * 1000;
     if (memoryEstimation > tenGB) {
         return true;
     }
     return false;
 }
 
-BoardRaw getExploreBoard(int width) {
+template <int WIDTH>
+BoardRaw ForbiddenWordsIDFS<WIDTH>::getExploreBoard(int width) {
     auto exploreWidth = width*2-1;
     auto length = exploreWidth * exploreWidth;
     std::vector<int> boardVec(length); // 4x4 ==> 7x7, 5x5 ==> 9x9
-    
-    auto middle = (length) / 2;
-    for (auto i = 0; i < length; ++i) {
-        if (i == middle) boardVec[i] = 0;
-        else boardVec[i] = i + 1 - (i > middle);
+
+    if (UseSubBoard::value) {
+        for (int r = 0; r < width; ++r) {
+            for (int c = 0; c < width; ++c) {
+                auto ind = r * exploreWidth + c;
+                boardVec[ind] = r * width + c + 1;
+            }
+        }
+        auto middle = (length) / 2;
+        boardVec[middle] = 0;
+
+        for (int r = 0; r < exploreWidth; ++r) {
+            for (int c = 0; c < exploreWidth; ++c) {
+                if (r < width && c < width) continue;
+
+                auto ind = r * exploreWidth + c;
+                auto fetchInd = -1;
+                if (c >= width) {
+                    fetchInd = ind - width;
+                } else if (r >= width) {
+                    fetchInd = ind - (width * exploreWidth);
+                } else assertm(0, "??");
+
+                boardVec[ind] = boardVec[fetchInd];
+            }
+        }
+    } else {
+        auto middle = (length) / 2;
+        for (auto i = 0; i < length; ++i) {
+            if (i == middle) boardVec[i] = 0;
+            else boardVec[i] = i + 1 - (i > middle);
+        }
     }
 
+    //DEBUG(BoardRaw(boardVec, exploreWidth, exploreWidth)); exit(1);
     return BoardRaw(boardVec, exploreWidth, exploreWidth);
 }
+
+template <int WIDTH>
+uint8_t ForbiddenWordsIDFS<WIDTH>::getCoord(const BoardRaw &board) const {
+    auto exploreWidth = WIDTH*2-1;
+    int mr = WIDTH-1, mc = WIDTH-1;
+    for (int r = 0; r < exploreWidth; ++r) {
+        for (int c = 0; c < exploreWidth; ++c) {
+            auto ind = r * exploreWidth + c;
+            auto boardVal = board.getBlankTile() == ind ? 0 : board.grid[ind];
+            auto startVal = startBoard.getBlankTile() == ind ? 0 : startBoard.grid[ind];
+
+            if (boardVal != startVal) {
+                mc = std::min(mc, c);
+                mr = std::min(mr, r);
+            }
+        }
+    }
+    return mr * exploreWidth + mc;
+}
+
 
 template class ForbiddenWordsIDFS<3>;
 template class ForbiddenWordsIDFS<4>;
