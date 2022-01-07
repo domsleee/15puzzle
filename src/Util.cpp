@@ -69,7 +69,7 @@ char directionToChar(Direction move) {
         case Direction::R: return 'r';
         case Direction::L: return 'l';
     }
-    assertm(0, "unknown direction");
+    FAIL("unknown direction");
 }
 
 int charToInt(char move) {
@@ -84,7 +84,7 @@ Direction charToDirection(char move) {
         case 'l': return Direction::L;
     }
     DEBUG("char given " << move);
-    assertm(0, "Unknown move in charToDirection");
+    FAIL("unknown char");
 }
 
 std::vector<BoardRaw> getAllStartingBoards(int width, int height) {
@@ -137,7 +137,7 @@ Direction pathMoved(const BoardRaw& a, const BoardRaw& b)
             if (diff == -b.getWidth()) return Direction::U;
             else if (diff == b.getWidth()) return Direction::D;
             DEBUG("BLANKS " << a.getBlankTile() << " VS " << b.getBlankTile() << ", diff " << diff << " width" << a.getWidth());
-            assertm(0, "no direction found??");
+            FAIL("no direction found ??");
         }
     }
 }

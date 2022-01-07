@@ -1,7 +1,6 @@
 #include "../include/BoardRepTempl.h"
 #include "../include/Util.h"
 #include <cmath>
-#include <bitset>
 
 template <int WIDTH>
 BoardRepTempl<WIDTH>::BoardRepTempl(const BoardRaw &board) {
@@ -101,13 +100,3 @@ BoardRaw BoardRepTempl<WIDTH>::toBoard() const {
     }
     return BoardRaw(newVec, WIDTH, WIDTH);
 }
-
-
-template class BoardRepTempl<3>;
-template class BoardRepTempl<4>;
-template class BoardRepTempl<5>;
-template class BoardRepTempl<6>;
-template class BoardRepTempl<7>;
-template class BoardRepTempl<8>;
-template class BoardRepTempl<9>;
-

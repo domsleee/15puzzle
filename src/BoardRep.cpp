@@ -1,7 +1,6 @@
 #include "../include/BoardRep.h"
 #include "../include/Util.h"
 #include <cmath>
-#include <bitset>
 
 BoardRep::BoardRep(const BoardRaw &board) {
     boardSize = board.grid.size();
@@ -33,10 +32,6 @@ BoardRep::BoardRep(const BoardRaw &board) {
             remBitsInInd = 8 - bitsInNext;
         }
     }
-
-    /*for (auto i = 0; i < getArraySize(); ++i) {
-        DEBUG(i << ": " << std::bitset<8>(grid[i]));
-    }*/
 }
 
 BoardRep::BoardRep(const BoardRep &other) {

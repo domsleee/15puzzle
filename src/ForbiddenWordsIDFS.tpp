@@ -171,6 +171,8 @@ bool ForbiddenWordsIDFS<WIDTH>::shouldCleanUp() {
     long long memoryEstimation = forbiddenWordsEstimate
         + pathMemoryEstimate
         + boardRepMemoryEstimate; // in bytes
+
+    // currently 8 ==> 18gb
     const long long tenGB = (long long)8 * 1000 * 1000 * 1000;
     if (memoryEstimation > tenGB) {
         return true;
@@ -239,8 +241,3 @@ uint8_t ForbiddenWordsIDFS<WIDTH>::getCoord(const BoardRaw &board) const {
     }
     return mr * exploreWidth + mc;
 }
-
-
-template class ForbiddenWordsIDFS<3>;
-template class ForbiddenWordsIDFS<4>;
-template class ForbiddenWordsIDFS<5>;

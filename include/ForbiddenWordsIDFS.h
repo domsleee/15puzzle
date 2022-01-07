@@ -1,3 +1,5 @@
+#pragma once
+
 #include <unordered_set>
 #include <map>
 #include <vector>
@@ -38,3 +40,5 @@ struct ForbiddenWordsIDFS {
     uint8_t getCoord(const BoardRaw &board) const;
     BoardRaw getExploreBoard(int width);
 };
+
+#include "../src/ForbiddenWordsIDFS.tpp"

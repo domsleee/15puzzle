@@ -43,3 +43,5 @@ struct BoardRepTempl {
         return false;
     }
 };
+
+#include "../src/BoardRepTempl.tpp"

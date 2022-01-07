@@ -1,4 +1,5 @@
 #pragma once
+
 #include "BoardRaw.h"
 #include "BoardRepTempl.h"
 
@@ -35,3 +36,5 @@ struct BoardRepSub {
         return BoardRepTempl<WIDTH>::getByteEstimate() + 1;
     }
 };
+
+#include "../src/BoardRepSub.tpp"

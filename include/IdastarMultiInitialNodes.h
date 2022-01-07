@@ -20,8 +20,9 @@ public:
     };
 
     std::vector<InitialNode> getInitialNodes2(const B& start, const std::vector<int> &solution, int targetNodes);
+    std::string gridHash(const std::vector<int> &grid) const;
 };
 
-
+#include "../src/IdastarMultiInitialNodes.tpp"
 
 #endif

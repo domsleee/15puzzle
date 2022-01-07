@@ -42,7 +42,8 @@ struct BFSNodeWithNumSucc {
     }
 };
 
-std::string gridHash(const std::vector<int> &grid) {
+template <class B>
+std::string IdastarMultiInitialNodes<B>::gridHash(const std::vector<int> &grid) const {
     std::string res = "";
     for (auto i: grid) res.push_back('0' + i);
     return res;
@@ -108,6 +109,3 @@ std::vector<typename IdastarMultiInitialNodes<B>::InitialNode> IdastarMultiIniti
 
     return res;
 }
-
-template class IdastarMultiInitialNodes<Board>;
-template class IdastarMultiInitialNodes<BoardRect>;

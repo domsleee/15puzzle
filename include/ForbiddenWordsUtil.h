@@ -71,7 +71,7 @@ struct CompressedPath {
             case 'r': return 2;
             case 'u': return 3;
         }
-        assertm(0, "unknown char");
+        FAIL("unknown char");
     }
 
     int myIntToChar(int i) const {
@@ -81,7 +81,7 @@ struct CompressedPath {
             case 2: return 'r';
             case 3: return 'u';
         }
-        assertm(0, "unknown int");
+        FAIL("unknown int");
     }
 
     friend bool operator==(const CompressedPath &lhs, const CompressedPath &rhs) {
