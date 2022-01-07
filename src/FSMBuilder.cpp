@@ -17,12 +17,9 @@ FSMBuilder::FSMBuilder(int width, int height, int maxDepth):
     maxDepth(maxDepth)
     {}
 
-StateMachineSimple FSMBuilder::build() {
+StateMachineSimple FSMBuilder::build() const {
     START_TIMER(forbiddenWords);
-    //auto forbiddenWords = ForbiddenWordsFast(maxDepth, width, height);
-    auto forbiddenWords = ForbiddenWordsIDFS(maxDepth, width, height);
-    //forbiddenWords.printMessage();
-    auto strings = forbiddenWords.getForbiddenWords();
+    auto strings = getForbiddenWords();
     DEBUG("found " << strings.size() << " forbidden strings");
     END_TIMER(forbiddenWords);
 
@@ -37,6 +34,18 @@ StateMachineSimple FSMBuilder::build() {
     END_TIMER(FSM2);
 
     return fsm2;
+}
+
+#define IDFS_IF(N) if (width == N) { return ForbiddenWordsIDFS<N>(maxDepth, N, N).getForbiddenWords(); }
+
+std::unordered_set<std::string> FSMBuilder::getForbiddenWords() const {
+    //auto forbiddenWords = ForbiddenWordsFast(maxDepth, width, height);
+    if (width == height) {
+        IDFS_IF(3);
+        IDFS_IF(4);
+        IDFS_IF(5);
+    }
+    throw "not supported";
 }
 
 

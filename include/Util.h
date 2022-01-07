@@ -50,4 +50,17 @@ struct StringVectorCompare {
 
 Direction pathMoved(const BoardRaw& a, const BoardRaw& b);
 
+
+
+constexpr int getNumBitsPerTileConst(int boardSize) {
+    auto numBits = 1;
+    while (1 << (numBits) < boardSize) {
+        numBits++;
+    }
+    return numBits;
+}
+
+int getNumBitsPerTile(int boardSize);
+int getBitmask(int bitsPerTile);
+
 #endif  // UTIL_H

@@ -3,10 +3,11 @@
 #include "Util.h"
 #include <memory>
 
-int getNumBitsPerTile(int boardSize);
-
 struct BoardRep {
     BoardRep(const BoardRaw &board);
+    BoardRep() {
+        throw "what";
+    }
     std::unique_ptr<uint8_t[]> grid;
     uint8_t boardSize;
 

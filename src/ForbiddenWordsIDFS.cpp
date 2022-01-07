@@ -1,6 +1,7 @@
 #include "../include/ForbiddenWordsIDFS.h"
 #include "../include/BoardRaw.h"
 #include "../include/BoardRep.h"
+#include "../include/BoardRepTempl.h"
 #include "../include/Direction.h"
 
 #include "../include/AhoCorasick.h"
@@ -11,7 +12,8 @@
 
 BoardRaw getExploreBoard(int width);
 
-ForbiddenWordsIDFS::ForbiddenWordsIDFS(long long depthLimit, int width, int height)
+template <int WIDTH>
+ForbiddenWordsIDFS<WIDTH>::ForbiddenWordsIDFS(long long depthLimit, int width, int height)
     : depthLimit(depthLimit),
       width(width),
       height(height)
@@ -22,7 +24,8 @@ ForbiddenWordsIDFS::ForbiddenWordsIDFS(long long depthLimit, int width, int heig
 }
 
 
-std::unordered_set<std::string> ForbiddenWordsIDFS::getForbiddenWords() {
+template <int WIDTH>
+std::unordered_set<std::string> ForbiddenWordsIDFS<WIDTH>::getForbiddenWords() {
     auto strFile = "databases/fsm-idfs-" + std::to_string(width) + "x" + std::to_string(height) + "-" + std::to_string(depthLimit);
 
     auto fsmFile = getFSMWordsFromFile(strFile);
@@ -49,14 +52,15 @@ std::unordered_set<std::string> ForbiddenWordsIDFS::getForbiddenWords() {
     return forbiddenWords;
 }
 
-void ForbiddenWordsIDFS::dfs(BoardRaw &board, std::string &path, int limit, StateMachine &fsm) {
+template <int WIDTH>
+void ForbiddenWordsIDFS<WIDTH>::dfs(BoardRaw &board, std::string &path, int limit, StateMachine &fsm) {
     dfsCt++;
     auto range = getCriticalPoints(path); 
     if (range.Mr - range.mr >= width || range.Mc - range.mc >= width) {
         return;
     }
     
-    auto boardRep = BoardRep(board);
+    auto boardRep = BoardRepT(board);
     auto isCleaning = boardsWeCareAbout.size() > 0;
 
     if (isCleaning) {
@@ -99,7 +103,8 @@ void ForbiddenWordsIDFS::dfs(BoardRaw &board, std::string &path, int limit, Stat
     }
 }
 
-void ForbiddenWordsIDFS::processAndClearBoardToPaths() {
+template <int WIDTH>
+void ForbiddenWordsIDFS<WIDTH>::processAndClearBoardToPaths() {
     while (boardToPaths.size() > 0) {
         const auto [boardRep, paths] = *boardToPaths.begin();
         if (paths.size() >= 2) {
@@ -123,7 +128,8 @@ void ForbiddenWordsIDFS::processAndClearBoardToPaths() {
     pathCount = 0;
 }
 
-void ForbiddenWordsIDFS::clearMemory(int limit, StateMachine &fsm) {
+template <int WIDTH>
+void ForbiddenWordsIDFS<WIDTH>::clearMemory(int limit, StateMachine &fsm) {
     for (const auto &[boardRep, paths]: boardToPaths) {
         boardsWeCareAbout.insert(boardRep);
     }
@@ -141,7 +147,8 @@ void ForbiddenWordsIDFS::clearMemory(int limit, StateMachine &fsm) {
     boardsWeCareAbout.clear();
 }
 
-bool ForbiddenWordsIDFS::shouldCleanUp() {
+template <int WIDTH>
+bool ForbiddenWordsIDFS<WIDTH>::shouldCleanUp() {
     if (boardsWeCareAbout.size() > 0) return false;
 
     long long pathMemoryEstimate = (pathCount * 2 + 7) / 8 + (4 * pathCount/15);
@@ -170,3 +177,7 @@ BoardRaw getExploreBoard(int width) {
 
     return BoardRaw(boardVec, exploreWidth, exploreWidth);
 }
+
+template class ForbiddenWordsIDFS<3>;
+template class ForbiddenWordsIDFS<4>;
+template class ForbiddenWordsIDFS<5>;

@@ -141,3 +141,30 @@ Direction pathMoved(const BoardRaw& a, const BoardRaw& b)
         }
     }
 }
+
+int numBitsPerTileCache[1024] = {0};
+
+int getNumBitsPerTile(int boardSize) {
+    if (numBitsPerTileCache[boardSize] != 0) return numBitsPerTileCache[boardSize];
+    
+    auto numBits = 1;
+    while (1 << (numBits) < boardSize) {
+        numBits++;
+    }
+    return numBitsPerTileCache[boardSize] = numBits;
+}
+
+int getBitmask(int bitsPerTile) {
+    switch(bitsPerTile) {
+        case 0: return 0;
+        case 1: return 0b1;
+        case 2: return 0b11;
+        case 3: return 0b111;
+        case 4: return 0b1111;
+        case 5: return 0b11111;
+        case 6: return 0b111111;
+        case 7: return 0b1111111;
+        case 8: return 0b11111111;
+    }
+    throw "not implemented";
+}

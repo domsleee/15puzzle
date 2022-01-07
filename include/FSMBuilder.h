@@ -5,6 +5,7 @@ class FSMBuilder {
     int width, height, maxDepth;
 public:
     FSMBuilder(int width, int height, int maxDepth);
-    StateMachineSimple build();
+    StateMachineSimple build() const;
+    std::unordered_set<std::string> getForbiddenWords() const;
 };
 

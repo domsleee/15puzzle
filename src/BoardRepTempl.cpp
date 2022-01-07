@@ -1,21 +1,21 @@
-#include "../include/BoardRep.h"
+#include "../include/BoardRepTempl.h"
 #include "../include/Util.h"
 #include <cmath>
 #include <bitset>
 
-BoardRep::BoardRep(const BoardRaw &board) {
-    boardSize = board.grid.size();
-    grid = std::make_unique<uint8_t[]>(getArraySize());
-    if (board.grid.size() > 1024) {
-        assertm(0, "BoardRep: too big for this data type");
+template <int WIDTH>
+BoardRepTempl<WIDTH>::BoardRepTempl(const BoardRaw &board) {
+    if (board.grid.size() != WIDTH*WIDTH) {
+        DEBUG("board.grid.size(): " << board.grid.size() << ", WIDTH*WIDTH: " << WIDTH*WIDTH);
+        assertm(0, "BoardRepTempl: incorrect type");
     }
-    for (auto i = 0; i < getArraySize(); ++i) grid[i] = 0;
+    for (std::size_t i = 0; i < grid.size(); ++i) grid[i] = 0;
 
-    auto bitsPerTile = getNumBitsPerTile(boardSize);
+    auto bitsPerTile = getNumBitsPerTile(WIDTH*WIDTH);
     auto ind = 0;
     auto remBitsInInd = 8;
 
-    for (auto i = 0; i < boardSize; ++i) {
+    for (auto i = 0; i < WIDTH*WIDTH; ++i) {
         auto v = i == board.getBlankTile() ? 0 : board.grid[i];
         //DEBUG(ind << ": " << remBitsInInd << " (i: " << i << ")");
 
@@ -33,28 +33,18 @@ BoardRep::BoardRep(const BoardRaw &board) {
             remBitsInInd = 8 - bitsInNext;
         }
     }
-
-    /*for (auto i = 0; i < getArraySize(); ++i) {
-        DEBUG(i << ": " << std::bitset<8>(grid[i]));
-    }*/
 }
 
-BoardRep::BoardRep(const BoardRep &other) {
-    grid = std::make_unique<uint8_t[]>(other.getArraySize());
-    boardSize = other.boardSize;
-    for (auto i = 0; i < getArraySize(); ++i) grid[i] = other.grid[i];
-}
+template <int WIDTH>
+BoardRaw BoardRepTempl<WIDTH>::toBoard() const {
+    auto newVec = std::vector<int>(WIDTH*WIDTH, 0);
 
-BoardRaw BoardRep::toBoard() const {
-    auto srt = sqrt(boardSize);
-    auto newVec = std::vector<int>(boardSize, 0);
-
-    auto bitsPerTile = getNumBitsPerTile(boardSize);
+    auto bitsPerTile = getNumBitsPerTile(WIDTH*WIDTH);
     auto bitmask = getBitmask(bitsPerTile);
     auto ind = 0;
     auto remBitsInInd = 8;
 
-    for (auto i = 0; i < boardSize; ++i) {
+    for (auto i = 0; i < WIDTH*WIDTH; ++i) {
         auto v = 0;
         if (remBitsInInd == bitsPerTile) {
             v = grid[ind];
@@ -72,5 +62,15 @@ BoardRaw BoardRep::toBoard() const {
         v &= bitmask;
         newVec[i] = v;
     }
-    return BoardRaw(newVec, srt, srt);
+    return BoardRaw(newVec, WIDTH, WIDTH);
 }
+
+
+template class BoardRepTempl<3>;
+template class BoardRepTempl<4>;
+template class BoardRepTempl<5>;
+template class BoardRepTempl<6>;
+template class BoardRepTempl<7>;
+template class BoardRepTempl<8>;
+template class BoardRepTempl<9>;
+
