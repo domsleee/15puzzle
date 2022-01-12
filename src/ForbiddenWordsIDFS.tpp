@@ -25,6 +25,11 @@ ForbiddenWordsIDFS<WIDTH>::ForbiddenWordsIDFS(long long depthLimit, int width, i
 {
 }
 
+std::vector<std::string> decompressPaths(std::set<CompressedPath> &paths) {
+    std::vector<std::string> words = {};
+    for (auto &path: paths) words.push_back(path.decompress());
+    return words;
+}
 
 template <int WIDTH>
 std::unordered_set<std::string> ForbiddenWordsIDFS<WIDTH>::getForbiddenWords() {
@@ -41,7 +46,7 @@ std::unordered_set<std::string> ForbiddenWordsIDFS<WIDTH>::getForbiddenWords() {
     for (auto limit = 1; limit <= depthLimit; ++limit) {
         clearCount = 0;
         DEBUG("paths length limit: " << limit << ", size: " << forbiddenWords.size());
-        auto fsm = BuildFSMFromStrings(forbiddenWords);
+        auto fsm = BuildFSMFromStrings(decompressPaths(forbiddenWords));
         
         fsm.undoMove(0);
         std::string path;
@@ -50,11 +55,13 @@ std::unordered_set<std::string> ForbiddenWordsIDFS<WIDTH>::getForbiddenWords() {
             clearMemory(limit, fsm);
         }
         processAndClearBoardToPaths();
+        writePathsToFile(strFile+"-"+std::to_string(limit), forbiddenWords);
     }
 
     DEBUG("FORBIDDEN WORDS SIZE " << forbiddenWords.size());
-    writeWordsToFile(strFile, forbiddenWords);
-    return forbiddenWords;
+    writePathsToFile(strFile, forbiddenWords);
+    forbiddenWords.clear();
+    return decompressPaths(forbiddenWords);
 }
 
 template <int WIDTH>

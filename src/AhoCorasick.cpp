@@ -24,6 +24,10 @@ void StateMachine::calcAndSaveNextState(int state, int i) {
 }
 
 StateMachine BuildFSMFromStrings(const std::unordered_set<std::string> &strings) {
+    return BuildFSMFromStrings(std::vector<std::string>(strings.begin(), strings.end()));
+}
+
+StateMachine BuildFSMFromStrings(const std::vector<std::string> &strings) {
     auto numNodes = 1;
     for (auto s: strings) numNodes += s.size();
 

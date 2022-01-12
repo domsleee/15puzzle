@@ -28,6 +28,7 @@ private:
 };
 
 StateMachine BuildFSMFromStrings(const std::unordered_set<std::string> &strings);
+StateMachine BuildFSMFromStrings(const std::vector<std::string> &strings);
 
 inline int StateMachine::applyMove(int i) {
     auto oldState = state;

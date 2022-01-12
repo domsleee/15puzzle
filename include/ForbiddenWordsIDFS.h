@@ -27,7 +27,7 @@ struct ForbiddenWordsIDFS {
     const int width, height;
     long long pathCount, dfsCount, clearCount;
     bool isCleaning;
-    std::unordered_set<std::string> forbiddenWords;
+    std::set<CompressedPath> forbiddenWords;
     const BoardRaw startBoard;
     btree::map<BoardRepT, std::vector<CompressedPath>> boardToPaths;
 

@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <set>
 #include "Util.h"
 
 struct ValidationRet {
@@ -116,5 +117,7 @@ const int INVALID_PARTITION = -1;
 double getScore(const TwoPartition &twoPartition, int width);
 
 std::pair<bool, std::unordered_set<std::string>> getFSMWordsFromFile(const std::string &filename);
+
+void writePathsToFile(std::string filename, const std::set<CompressedPath> &paths);
 
 #endif
