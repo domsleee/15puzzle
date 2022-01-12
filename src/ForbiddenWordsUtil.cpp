@@ -3,6 +3,9 @@
 #include "../include/ForbiddenWordsScore.h"
 #include "../include/InputParser.h"
 
+#include <fstream>
+#include <filesystem>
+
 ValidationRet::ValidationRet(int minBfsLength, int blankLocation, const std::vector<std::string> &stringsLessThanLength)
     : minBfsLength(minBfsLength),
       blankLocation(blankLocation),
@@ -117,4 +120,13 @@ std::pair<bool, std::unordered_set<std::string>> getFSMWordsFromFile(const std::
         return {true, setOfWords};
     }
     return {false, {}};
+}
+
+void writePathsToFile(std::string filename, const std::set<CompressedPath> &paths) {
+    if (std::filesystem::exists(filename)) {
+        DEBUG("refused to write words to file that already existed " << filename);
+        return;
+    }
+    std::ofstream fout{filename};
+    for (auto s: paths) fout << s.decompress() << '\n';
 }

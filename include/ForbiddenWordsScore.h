@@ -41,7 +41,7 @@ double getScore(const std::string &forbiddenWord, int width) {
         auto mc = range.mc + c, Mc = range.Mc + c;
         if (mr < 0 || Mr >= width || mc < 0 || Mc >= width) continue;
 
-        score += probs[i];
+        score += 1;//probs[i];
     }
 
     double sizeVal = pow(2.13, 50-forbiddenWord.size());
