@@ -40,6 +40,7 @@ int charToInt(char move);
 std::vector<BoardRaw> getAllStartingBoards(int width, int height);
 void writeWordsToFile(std::string filename, const std::unordered_set<std::string> &words);
 bool readWordsFromFile(std::string filename, std::unordered_set<std::string> &words);
+bool readWordsFromFile(std::string filename, std::vector<std::string> &words);
 
 struct StringVectorCompare {
     inline bool operator()(const std::string& first,

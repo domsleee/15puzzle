@@ -32,7 +32,7 @@ std::vector<std::string> decompressPaths(std::set<CompressedPath> &paths) {
 }
 
 template <int WIDTH>
-std::unordered_set<std::string> ForbiddenWordsIDFS<WIDTH>::getForbiddenWords() {
+std::vector<std::string> ForbiddenWordsIDFS<WIDTH>::getForbiddenWords() {
     auto strFile = "databases/fsm-idfs-" + std::to_string(width) + "x" + std::to_string(height) + "-" + std::to_string(depthLimit);
 
     auto fsmFile = getFSMWordsFromFile(strFile);
@@ -60,8 +60,9 @@ std::unordered_set<std::string> ForbiddenWordsIDFS<WIDTH>::getForbiddenWords() {
 
     DEBUG("FORBIDDEN WORDS SIZE " << forbiddenWords.size());
     writePathsToFile(strFile, forbiddenWords);
+    auto res = decompressPaths(forbiddenWords);
     forbiddenWords.clear();
-    return decompressPaths(forbiddenWords);
+    return res;
 }
 
 template <int WIDTH>

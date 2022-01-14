@@ -32,7 +32,7 @@ struct ForbiddenWordsIDFS {
     btree::map<BoardRepT, std::vector<CompressedPath>> boardToPaths;
 
     ForbiddenWordsIDFS(long long depthLimit, int width, int height);
-    std::unordered_set<std::string> getForbiddenWords();
+    std::vector<std::string> getForbiddenWords();
     void dfs(BoardRaw &board, std::string &path, int limit, StateMachine &fsm);
     void processAndClearBoardToPaths();
     void clearMemory(int limit, StateMachine &fsm);

@@ -38,7 +38,7 @@ StateMachineSimple FSMBuilder::build() const {
 
 #define IDFS_IF(N) if (width == N) { return ForbiddenWordsIDFS<N>(maxDepth, N, N).getForbiddenWords(); }
 
-std::unordered_set<std::string> FSMBuilder::getForbiddenWords() const {
+std::vector<std::string> FSMBuilder::getForbiddenWords() const {
     //auto forbiddenWords = ForbiddenWordsFast(maxDepth, width, height);
     if (width == height) {
         IDFS_IF(3);

@@ -103,21 +103,21 @@ double getScore(const TwoPartition &twoPartition, int width) {
     return score;
 }
 
-std::pair<bool, std::unordered_set<std::string>> getFSMWordsFromFile(const std::string &filename) {
-    std::unordered_set<std::string> setOfWords;
+std::pair<bool, std::vector<std::string>> getFSMWordsFromFile(const std::string &filename) {
+    std::vector<std::string> forbiddenWords = {};
     if (InputParser::fsmFileExists()) {
         auto strFile = InputParser::getFSMFile();
-        if (!readWordsFromFile(filename, setOfWords)) {
+        if (!readWordsFromFile(filename, forbiddenWords)) {
             DEBUG("could not read from file " << strFile);
             exit(1);
         };
-        DEBUG("Loaded FSM from file " << filename << " #words: " << setOfWords.size());
-        return {true, setOfWords};
+        DEBUG("Loaded FSM from file " << filename << " #words: " << forbiddenWords.size());
+        return {true, forbiddenWords};
     }
 
-    if (readWordsFromFile(filename, setOfWords)) {
-        DEBUG("Loaded FSM from file " << filename << " #words: " << setOfWords.size());
-        return {true, setOfWords};
+    if (readWordsFromFile(filename, forbiddenWords)) {
+        DEBUG("Loaded FSM from file " << filename << " #words: " << forbiddenWords.size());
+        return {true, forbiddenWords};
     }
     return {false, {}};
 }

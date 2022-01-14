@@ -127,6 +127,16 @@ bool readWordsFromFile(std::string filename, std::unordered_set<std::string> &wo
     return true;
 }
 
+bool readWordsFromFile(std::string filename, std::vector<std::string> &words) {
+    if (!std::filesystem::exists(filename)) {
+        return false;
+    }
+    std::ifstream fin{filename};
+    std::string s;
+    while (fin >> s) words.push_back(s);
+    return true;
+}
+
 Direction pathMoved(const BoardRaw& a, const BoardRaw& b)
 {
     auto diff = a.getBlankTile() - b.getBlankTile();

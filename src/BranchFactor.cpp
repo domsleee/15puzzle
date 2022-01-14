@@ -1,50 +1,39 @@
 #include "../include/BranchFactor.h"
+#include "../include/Util.h"
 
-#include <queue>
+#include <stack>
 #include <unordered_map>
+
+void dfs(BoardRaw &board, StateMachineSimple &fsm, int g, int limit, int &nodeCount) {
+    if (g == limit) return;
+    nodeCount++;
+
+    for (auto i = 0; i < 4; ++i) {
+        auto dir = static_cast<Direction>(i);
+        if (board.canMove(dir) && fsm.canMove(i)) {
+            auto prevMove = board.applyMove(dir);
+            auto prevFSM = fsm.applyMove(i);
+
+            dfs(board, fsm, g+1, limit, nodeCount);
+
+            fsm.undoMove(prevFSM);
+            board.undoMove(prevMove);
+        }
+    }
+}
 
 void evaluateBranchFactor(StateMachineSimple &fsm, int width, int height) {
     auto startBoard = getAllStartingBoards(width, height)[0];
 
-    std::queue<std::pair<int, BoardRaw>> q;
-    std::unordered_map<BoardRep, int> dist;
-    std::vector<int> numNodes;
-    q.push({0, startBoard});
-    auto startBoardRep = BoardRep(startBoard);
-    dist[startBoardRep] = 0;
-    auto knownDist = 0, nodeCount = 0;
+    std::vector<int> numNodes(1, 0);
     fsm.undoMove(0);
-
-    while (!q.empty()) {
-        auto [fsmState, board] = q.front(); q.pop();
-        auto boardRep = BoardRep(board);
-        auto myDist = dist.at(boardRep);
-        if (myDist > knownDist) {
-            knownDist = myDist;
-            auto ratio = 0.00;
-            if (numNodes.size() > 0) ratio = (double)nodeCount / numNodes[numNodes.size()-1];
-            DEBUG(knownDist << ", " << nodeCount << " (" << ratio << ")");
-            numNodes.push_back(nodeCount);
-            nodeCount = 0;
-        }
-
-        nodeCount++;
-        fsm.undoMove(fsmState);
-        for (auto i = 0; i < 4; ++i) {
-            auto dir = static_cast<Direction>(i);
-            if (board.canMove(dir) && fsm.canMove(i)) {
-                auto prevMove = board.applyMove(dir);
-                auto prevFSM = fsm.applyMove(i);
-                auto newBoardRep = BoardRep(board);
-
-                //if (!dist.count(newBoardRep)) {
-                    dist[newBoardRep] = myDist + 1;
-                    q.push({fsm.state, board});
-                //}
-
-                fsm.undoMove(prevFSM);
-                board.undoMove(prevMove);
-            }
-        }
+    for (auto depth = 1; depth <= 25; ++depth) {
+        int nodeCount = 0;
+        dfs(startBoard, fsm, 0, depth, nodeCount);
+        numNodes.resize(depth+1);
+        numNodes[depth] = nodeCount;
+        auto ratio = 0.00;
+        if (depth > 1) ratio = (double)numNodes[depth] / numNodes[depth-1];
+        DEBUG(depth << ", " << nodeCount << " (" << ratio << ")");
     }
 }
