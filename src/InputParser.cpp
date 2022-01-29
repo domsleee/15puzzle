@@ -50,7 +50,7 @@ bool InputParser::runParallel() {
 }
 
 bool InputParser::evaluateBranchingFactor() {
-    return optionExists("-e") || optionExists("--evaluate");
+    return optionExists("-e") || optionExists("--evaluateBranchFactor");
 }
 
 std::string InputParser::getDatabase() {

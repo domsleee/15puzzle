@@ -36,7 +36,17 @@ void usage() {
                  "    -h, --help\n"
                  "        Print this help\n"
                  "    -i, --interactive\n"
-                 "        Show a playback of each solution\n\n";
+                 "        Show a playback of each solution\n"
+                 "    -f, --fsmDepthLimit\n"
+                 "        Specify a depth limit for constructing the FSM\n"
+                 "    --fsmFile\n"
+                 "        Specify a file of forbidden words to use for the FSM\n"
+                 "    -e, --evaluateBranchFactor\n"
+                 "        Evaluate the branching factor of an exhaustive DFS\n"
+                 "    -i, --interactive\n"
+                 "        Show a playback of each solution\n"
+                 "    -p\n"
+                 "        Use parallel BFS + IDA* search\n\n";
 }
 
 struct DBData {
