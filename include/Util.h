@@ -14,7 +14,7 @@
 #include "BoardRaw.h"
 #include "Memory.h"
 
-#define FAIL(reason) { assertm(0, reason); exit(1); }
+#define FAIL(reason) { DEBUG("FAIL: " << reason); exit(1); }
 #define MAX_LL std::numeric_limits<long long>::max()
 
 #define assertm(expr, msg) assert(((void)(msg), (expr)))
@@ -65,4 +65,5 @@ constexpr int getNumBitsPerTileConst(int boardSize) {
 int getNumBitsPerTile(int boardSize);
 int getBitmask(int bitsPerTile);
 
+std::ifstream openFileExitIfNotExist(const std::string &filename);
 #endif  // UTIL_H

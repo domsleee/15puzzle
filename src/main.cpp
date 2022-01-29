@@ -18,6 +18,7 @@
 #include "../include/FSMBuilder.h"
 #include "../include/Tests.h"
 #include "../include/BranchFactor.h"
+#include "../include/Util.h"
 
 // Dynamic board size
 // Dynamic database pattern
@@ -92,7 +93,7 @@ std::pair<std::string, DBData> getDatabase() {
         auto dbPath = InputParser::getDatabase();
         auto dbName = dbPath.substr(dbPath.find_last_of('/') + 1);
 
-        std::ifstream input(dbPath);
+        auto input = openFileExitIfNotExist(dbPath);
         return {dbName, readDatabase(input)};
     }
 
@@ -101,7 +102,7 @@ std::pair<std::string, DBData> getDatabase() {
 
 std::vector<std::vector<int>> getBoards() {
     if (InputParser::boardExists()) {
-        std::ifstream input(InputParser::getBoard());
+        auto input = openFileExitIfNotExist(InputParser::getBoard());
 
         return readBoards(input);
     }
@@ -111,6 +112,9 @@ std::vector<std::vector<int>> getBoards() {
 
 int getInversions(const std::vector<int>& board) {
     int inversions = 0;
+    if (board.size() > 500) {
+        FAIL("large board size " << board.size());
+    }
     for (std::size_t i = 0; i < board.size(); i++) {
         for (std::size_t j = i + 1; j < board.size(); j++) {
             if (board[i] != 0 && board[j] != 0 && board[i] > board[j]) {

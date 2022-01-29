@@ -41,7 +41,6 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
     DEBUG("Solving: \n" << start);
 
     std::vector<Direction> path;
-
     auto initialNodeGetter = IdastarMultiInitialNodes<B>(fsm);
 
     nodes = 1;
@@ -55,7 +54,7 @@ std::vector<Direction> IdastarMulti<B>::solve(const B& start) {
     DEBUG("get initial nodes");
     START_TIMER(INITIAL_NODES);
     auto targetWorkers = 62; // weird?
-    auto initialNodes = initialNodeGetter.getInitialNodes2(start, solution, 50 * targetWorkers);
+    auto initialNodes = initialNodeGetter.getInitialNodes2(start, solution, 5000 * targetWorkers);
     END_TIMER(INITIAL_NODES);
 
     DEBUG("num initialNodes: " << initialNodes.size());

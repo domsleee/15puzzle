@@ -121,7 +121,7 @@ bool readWordsFromFile(std::string filename, std::unordered_set<std::string> &wo
     if (!std::filesystem::exists(filename)) {
         return false;
     }
-    std::ifstream fin{filename};
+    auto fin = openFileExitIfNotExist(filename);
     std::string s;
     while (fin >> s) words.insert(s);
     return true;
@@ -131,7 +131,7 @@ bool readWordsFromFile(std::string filename, std::vector<std::string> &words) {
     if (!std::filesystem::exists(filename)) {
         return false;
     }
-    std::ifstream fin{filename};
+    auto fin = openFileExitIfNotExist(filename);
     std::string s;
     while (fin >> s) words.push_back(s);
     return true;
@@ -174,4 +174,12 @@ int getBitmask(int bitsPerTile) {
         case 8: return 0b11111111;
     }
     throw "not implemented";
+}
+
+std::ifstream openFileExitIfNotExist(const std::string &filename) {
+    std::ifstream fil(filename);
+    if (!fil.good()) {
+        FAIL("failed to open file " << filename);
+    }
+    return fil;
 }

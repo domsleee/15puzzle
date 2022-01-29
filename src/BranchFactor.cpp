@@ -3,6 +3,7 @@
 
 #include <stack>
 #include <unordered_map>
+#include <cmath>
 
 void dfs(BoardRaw &board, StateMachineSimple &fsm, int g, int limit, int &nodeCount) {
     if (g == limit) return;
@@ -26,8 +27,9 @@ void evaluateBranchFactor(StateMachineSimple &fsm, int width, int height) {
     auto startBoard = getAllStartingBoards(width, height)[0];
 
     std::vector<int> numNodes(1, 0);
+    auto maxDepth = 25;
     fsm.undoMove(0);
-    for (auto depth = 1; depth <= 25; ++depth) {
+    for (auto depth = 1; depth <= maxDepth; ++depth) {
         int nodeCount = 0;
         dfs(startBoard, fsm, 0, depth, nodeCount);
         numNodes.resize(depth+1);
@@ -36,4 +38,9 @@ void evaluateBranchFactor(StateMachineSimple &fsm, int width, int height) {
         if (depth > 1) ratio = (double)numNodes[depth] / numNodes[depth-1];
         DEBUG(depth << ", " << nodeCount << " (" << ratio << ")");
     }
+
+    auto ratio1 = (double)numNodes[maxDepth] / numNodes[maxDepth-1];
+    auto ratio2 = (double)numNodes[maxDepth-1] / numNodes[maxDepth-2];
+    auto res = std::sqrt(ratio1 * ratio2);
+    DEBUG(res << " = " << "sqrt(" << ratio1 << "*" << ratio2 << ")");
 }

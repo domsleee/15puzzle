@@ -227,12 +227,14 @@ void WalkingDistance::load(const std::vector<int>& goal, int w, int h) {
     col.resize(length);
 
     // Calculate row / column indices
+    auto blankLocation = 0;
     for (int i = 0; i < length; i++) {
         row[goal[i]] = i / width;
         col[goal[i]] = i % width;
+        if (goal[i] == 0) blankLocation = i;
     }
 
-    std::string filename = "databases/" + std::to_string(w) + "-wd.dat";
+    std::string filename = "databases/" + std::to_string(w) + "-" + std::to_string(blankLocation) + "-wd.dat";
     std::ifstream file(filename, std::ios::in | std::ios::binary);
     if (!file.good()) {
         // Database file missing, generate database
