@@ -13,13 +13,13 @@
 // WIDTH < HEIGHT
 
 BoardRect::BoardRect(const std::vector<int>& g, int width, int height)
-    : WIDTH(width),
-      HEIGHT(height),
-      deltas({-width, 1, width, -1}),
+    : deltas({-width, 1, width, -1}),
       canMoveList(calcMoveList(width, height)),
       blank(getBlank(g)),
+      patterns(DisjointDatabase::calculatePatterns(g)),
       grid(g),
-      patterns(DisjointDatabase::calculatePatterns(g)) {}
+      WIDTH(width),
+      HEIGHT(height) {}
 
 int BoardRect::getHeuristic() const {
     return DisjointDatabase::getHeuristic(patterns);
@@ -58,7 +58,7 @@ inline int BoardRect::getTile(int posn) const { return grid[posn]; }
 
 inline void BoardRect::setTile(int posn, int tile) { grid[posn] = tile; }
 
-bool BoardRect::canMove(Direction dir) {
+bool BoardRect::canMove(Direction dir) const {
     return canMoveList[blank][static_cast<int>(dir)];
 }
 
@@ -68,7 +68,7 @@ inline int BoardRect::getDelta(const std::vector<int>& g, int tile,
     const auto index = DisjointDatabase::where[tile];
     const auto delta = DisjointDatabase::tileDeltas[tile];
     return std::transform_reduce(
-        std::execution::par_unseq, g.cbegin() + offset + 1,
+        std::execution::seq, g.cbegin() + offset + 1,
         g.cbegin() + offset + WIDTH + 1, delta, std::plus<>(),
         [&index, &tile, &delta](const auto skip) {
             if (DisjointDatabase::where[skip] != index) {
@@ -133,6 +133,12 @@ void BoardRect::undoMove(const BoardRect::MoveState& prev) {
 
     // Update blank tile
     blank = newBlank;
+}
+
+std::vector<int> BoardRect::getGrid() const {
+    auto res = grid;
+    res[blank] = 0;
+    return res;
 }
 
 std::ostream& operator<<(std::ostream& out, const BoardRect& board) {

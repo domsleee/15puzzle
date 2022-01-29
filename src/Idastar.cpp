@@ -7,26 +7,10 @@
 constexpr int INF = 1000;
 
 template <class B>
-Idastar<B>::Idastar() : path({}), minCost(INF), limit(0), nodes(0) {}
-
-Direction inverse(Direction move) {
-    switch (move) {
-        case Direction::U:
-            return Direction::D;
-        case Direction::L:
-            return Direction::R;
-        case Direction::D:
-            return Direction::U;
-        case Direction::R:
-            return Direction::L;
-        default:
-            assertm(0, "Unknown direction in inverse");
-    }
-}
+Idastar<B>::Idastar(StateMachineSimple &fsm) : minCost(INF), limit(0), nodes(0), fsm(fsm), path({}) {}
 
 template <class B>
 std::vector<Direction> Idastar<B>::solve(const B& start) {
-    DEBUG("Running single threaded");
     DEBUG("Solving: \n" << start);
 
     path.clear();
@@ -40,22 +24,14 @@ std::vector<Direction> Idastar<B>::solve(const B& start) {
 
     DEBUG("Limit, Nodes:");
 
-    // Starting moves (for prevMove)
-    auto startMoves = start.getMoves();
-
     while (path.empty()) {
         minCost = INF;
         DEBUG(' ' << limit << ", " << nodes);
-
-        for (auto startDir : startMoves) {
-            auto copy = start;
-            copy.applyMove(startDir);
-
-            if (dfs(copy, 1, inverse(startDir))) {
-                path.push_back(startDir);
-                DEBUG("Nodes expanded: " << nodes);
-                return path;
-            }
+        auto copy = start;
+        fsm.undoMove(0);
+        if (dfs(copy, 0)) {
+            DEBUG("Nodes expanded: " << nodes);
+            return path;
         }
 
         limit = minCost;
@@ -65,15 +41,16 @@ std::vector<Direction> Idastar<B>::solve(const B& start) {
 }
 
 template <class B>
-bool Idastar<B>::dfs(B& node, int g, Direction prevMove) {
+bool Idastar<B>::dfs(B& node, int g) {
     auto h = node.getHeuristic();
     auto f = g + h;
 
+    //DEBUG_WITH_PID("f: " << f << ", limit: " << limit);
+
     if (h == 0) [[unlikely]] {
-            // Found goal state (heuristic = 0)
-            return true;
-        }
-    else if (f > limit) {
+        // Found goal state (heuristic = 0)
+        return true;
+    } else if (f > limit) {
         // Exceeded search depth, store next smallest depth
         if (f < minCost) {
             minCost = f;
@@ -82,23 +59,40 @@ bool Idastar<B>::dfs(B& node, int g, Direction prevMove) {
     }
 
     nodes += 1;
+    auto prevFsm = -1;
+    typename B::MoveState prev;
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; ++i) {
         auto dir = static_cast<Direction>(i);
-        if (prevMove != dir && node.canMove(dir)) {
-            auto prev = node.applyMove(dir);
+        if (fsm.canMove(i) && node.canMove(dir)) {
+            prev = node.applyMove(dir);
+            prevFsm = fsm.applyMove(i);
 
-            if (dfs(node, g + 1, inverse(dir))) {
+            if (dfs(node, g + 1)) {
                 path.push_back(dir);
                 return true;
             }
 
+            fsm.undoMove(prevFsm);
             node.undoMove(prev);
         }
     }
 
     return false;
 }
+
+template <class B>
+void Idastar<B>::clearPathAndSetLimit(int limit) {
+    this->limit = limit;
+    minCost = INF;
+    path.clear();
+}
+
+template <class B>
+long long Idastar<B>::getNodes() { return nodes; }
+
+template <class B>
+int Idastar<B>::getMinCost() { return minCost; }
 
 template class Idastar<Board>;
 template class Idastar<BoardRect>;

@@ -3,7 +3,7 @@
 
 #include <ostream>
 
-enum class Direction { U, R, D, L };
+enum class Direction { U = 0, R, D, L };
 
 std::ostream& operator<<(std::ostream& out, const Direction& dir);
 

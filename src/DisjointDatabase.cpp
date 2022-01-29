@@ -113,9 +113,7 @@ std::vector<Cost> loadPattern(const Grid& pattern, const std::string& filename,
     std::vector<Cost> cost(size);
 
     // Read database from file
-    for (auto& c : cost) {
-        file.read(reinterpret_cast<char*>(&c), sizeof(c));
-    }
+    file.read(reinterpret_cast<char*>(&cost[0]), size * sizeof(Cost));
 
     return cost;
 }
@@ -227,8 +225,15 @@ std::vector<Hash> DisjointDatabase::calculatePatterns(const Grid& grid) {
 }
 
 int DisjointDatabase::getHeuristic(const std::vector<Hash>& patterns) {
+    int res = 0;
+    for (std::size_t i = 0; i < patterns.size(); ++i) {
+        res += costs[i][patterns[i]];
+    }
+    return res;
+
+    /*
     return std::transform_reduce(
-        std::execution::par_unseq, costs.cbegin(), costs.cend(),
+        std::execution::seq, costs.cbegin(), costs.cend(),
         patterns.cbegin(), 0, std::plus<>(),
-        [](const auto& cost, const auto& pattern) { return cost[pattern]; });
+        [](const auto& cost, const auto& pattern) { return cost[pattern]; });*/
 }

@@ -1,4 +1,5 @@
 #include "../include/InputParser.h"
+#include "../include/Util.h"
 
 #include <string>
 #include <unordered_map>
@@ -32,12 +33,24 @@ bool InputParser::boardExists() {
     return optionExists("-b") || optionExists("--board");
 }
 
+bool InputParser::fsmDepthLimitExists() {
+    return optionExists("-f") || optionExists("--fsmDepthLimit");
+}
+
+bool InputParser::fsmFileExists() {
+    return optionExists("--fsmFile");
+}
+
 bool InputParser::showInteractive() {
     return optionExists("-i") || optionExists("--interactive");
 }
 
 bool InputParser::runParallel() {
     return optionExists("-p") || optionExists("--parallel");
+}
+
+bool InputParser::evaluateBranchingFactor() {
+    return optionExists("-e") || optionExists("--evaluateBranchFactor");
 }
 
 std::string InputParser::getDatabase() {
@@ -53,6 +66,16 @@ std::string InputParser::getBoard() {
     if (args.empty()) {
         return "";
     }
+    return args[0];
+}
+
+int InputParser::getFSMDepthLimit() {
+    auto args = getMultipleArgs({"-f", "--fsmDepthLimit"});
+    return std::stoi(args[0]);
+}
+
+std::string InputParser::getFSMFile() {
+    auto args = getMultipleArgs({"--fsmFile"});
     return args[0];
 }
 

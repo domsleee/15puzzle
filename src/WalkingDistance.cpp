@@ -4,6 +4,9 @@
 #include <fstream>
 #include <limits>
 #include <unordered_map>
+#include <map>
+#include <cstring>
+
 
 #include "../include/Util.h"
 
@@ -12,6 +15,7 @@ using Table = std::vector<std::vector<int>>;
 using Hash = std::string;
 using Cost = WalkingDistance::Cost;
 using Index = WalkingDistance::Index;
+using RowColType = WalkingDistance::RowColType;
 
 using WalkingDistance::col;
 using WalkingDistance::costs;
@@ -21,14 +25,17 @@ using WalkingDistance::height;
 using WalkingDistance::row;
 using WalkingDistance::width;
 
+ // only used in generation
 std::unordered_map<Hash, int> tableIndexLookup;
 std::vector<Hash> tables;
-std::vector<Cost> WalkingDistance::costs;
-std::vector<std::vector<Index>> WalkingDistance::edgesUp;
-std::vector<std::vector<Index>> WalkingDistance::edgesDown;
 
-std::vector<int> WalkingDistance::row;  // Row #
-std::vector<int> WalkingDistance::col;  // Column #
+std::vector<char> tableVec;
+std::vector<Cost> WalkingDistance::costs;
+std::vector<Index> WalkingDistance::edgesUp;
+std::vector<Index> WalkingDistance::edgesDown;
+
+std::vector<RowColType> WalkingDistance::row;  // Row #
+std::vector<RowColType> WalkingDistance::col;  // Column #
 
 int WalkingDistance::width;
 int WalkingDistance::height;
@@ -106,8 +113,10 @@ int add(const Table& table, int cost) {
     if (index == tablesSize) {
         addHashToTables(hash);
         costs.push_back(cost);
-        edgesUp.emplace_back(width, std::numeric_limits<Index>::max());
-        edgesDown.emplace_back(width, std::numeric_limits<Index>::max());
+        for (auto i = 0; i < width; ++i) {
+            edgesUp.push_back(std::numeric_limits<Index>::max());
+            edgesDown.push_back(std::numeric_limits<Index>::max());
+        }
     }
 
     return index;
@@ -126,8 +135,10 @@ void generate(const Board& goal) {
     // Initial table (goal)
     addHashToTables(calculateHash(calculateTable(goal)));
     costs.push_back(0);
-    edgesUp.emplace_back(width, std::numeric_limits<Index>::max());
-    edgesDown.emplace_back(width, std::numeric_limits<Index>::max());
+    for (auto i = 0; i < width; ++i) {
+        edgesUp.push_back(std::numeric_limits<Index>::max());
+        edgesDown.push_back(std::numeric_limits<Index>::max());
+    }
 
     for (std::size_t left = 0; left < tables.size(); left++) {
         int newPercentage = (100*left/tables.size());
@@ -146,8 +157,8 @@ void generate(const Board& goal) {
 
                     auto index = add(table, cost);
 
-                    edgesUp[left][x] = index;
-                    edgesDown[index][x] = left;
+                    edgesUp[left*width + x] = index;
+                    edgesDown[index*width + x] = left;
 
                     table[rowTile][x]++;
                     table[rowSpace][x]--;
@@ -163,13 +174,16 @@ void generate(const Board& goal) {
 
                     auto index = add(table, cost);
 
-                    edgesDown[left][x] = index;
-                    edgesUp[index][x] = left;
+                    edgesDown[left*width + x] = index;
+                    edgesUp[index*width + x] = left;
 
                     table[rowTile][x]++;
                     table[rowSpace][x]--;
                 }
             }
+        }
+        if (tables.size() > std::numeric_limits<Index>::max()) {
+            assertm(0, "table is too large for WalkingDistance::Index");
         }
     }
 }
@@ -184,28 +198,20 @@ void save(const std::string& filename) {
 
     int size = tables.size();
     assertm((int)costs.size() == size, "Mismatching table sizes");
-    assertm((int)edgesUp.size() == size, "Mismatching table sizes");
-    assertm((int)edgesDown.size() == size, "Mismatching table sizes");
+    assertm((int)edgesUp.size() == width * size, "Mismatching table sizes");
+    assertm((int)edgesDown.size() == width * size, "Mismatching table sizes");
+
     file.write(reinterpret_cast<char*>(&size), sizeof(size));
 
-    for (auto& table : tables) {
-        auto size = table.size();
-        file.write(reinterpret_cast<char*>(&size), sizeof(size));
-        file.write(table.c_str(), size);
+    auto length = width * height;
+    tableVec.resize(size * length);
+    for (auto i = 0; i < size; ++i) {
+        memcpy(&tableVec[i * length], tables[i].c_str(), length);
     }
-    for (auto cost : costs) {
-        file.write(reinterpret_cast<char*>(&cost), sizeof(cost));
-    }
-    for (auto& edge : edgesUp) {
-        for (auto col : edge) {
-            file.write(reinterpret_cast<char*>(&col), sizeof(col));
-        }
-    }
-    for (auto& edge : edgesDown) {
-        for (auto col : edge) {
-            file.write(reinterpret_cast<char*>(&col), sizeof(col));
-        }
-    }
+    file.write(reinterpret_cast<char*>(tableVec.data()), length * size);
+    file.write(reinterpret_cast<char*>(costs.data()), sizeof(Cost) * size);
+    file.write(reinterpret_cast<char*>(edgesUp.data()), sizeof(Index) * width * size);
+    file.write(reinterpret_cast<char*>(edgesDown.data()), sizeof(Index) * width * size);
 }
 
 void WalkingDistance::load(const std::vector<int>& goal, int w, int h) {
@@ -214,6 +220,8 @@ void WalkingDistance::load(const std::vector<int>& goal, int w, int h) {
     width = w;
     height = h;
     auto length = w * h;
+
+    assertm(width <= 255 && height <= 255, "row/col arrays are uint8_t");
 
     row.resize(length);
     col.resize(length);
@@ -242,41 +250,45 @@ void WalkingDistance::load(const std::vector<int>& goal, int w, int h) {
     int size = 0;
     file.read(reinterpret_cast<char*>(&size), sizeof(size));
 
-    tables.resize(size);
     costs.resize(size);
-    edgesUp.resize(size);
-    edgesDown.resize(size);
+    edgesUp.resize(width * size);
+    edgesDown.resize(width * size);
 
-    for (auto& table : tables) {
-        std::size_t tableSize;
-        file.read(reinterpret_cast<char*>(&tableSize), sizeof(tableSize));
-        table.resize(tableSize);
-        file.read(table.data(), tableSize);
-    }
-    for (auto& cost : costs) {
-        file.read(reinterpret_cast<char*>(&cost), sizeof(cost));
-    }
-    for (auto& edge : edgesUp) {
-        edge.resize(width);
-        for (auto& col : edge) {
-            file.read(reinterpret_cast<char*>(&col), sizeof(col));
-        }
-    }
-    for (auto& edge : edgesDown) {
-        edge.resize(width);
-        for (auto& col : edge) {
-            file.read(reinterpret_cast<char*>(&col), sizeof(col));
-        }
-    }
+    tableVec.resize(size * length);
+    file.read(reinterpret_cast<char*>(tableVec.data()), sizeof(char) * size * length);
+    file.read(reinterpret_cast<char*>(&costs[0]), sizeof(Cost) * size);
+    file.read(reinterpret_cast<char*>(&edgesUp[0]), sizeof(Index) * width * size);
+    file.read(reinterpret_cast<char*>(&edgesDown[0]), sizeof(Index) * width * size);
+
+    assertm(file.peek() == EOF, "should be at end of file");
+
+    // only used for generate
+    tableIndexLookup.clear();
+    tables.clear();
 }
 
 int WalkingDistance::getIndex(const Board& grid, bool alongRow) {
     auto hash = calculateHash(calculateTable(grid, alongRow));
 
-    // Convert to index
-    auto it = std::find(tables.cbegin(), tables.cend(), hash);
+    int index = -1;
+    auto length = height * width;
+    for (std::size_t i = 0; i < costs.size(); ++i) {
+        if (memcmp(&tableVec[i * length], hash.c_str(), length) == 0) {
+            index = i;
+            break;
+        }
+    }
+    assertm(index != -1, "Missing walking distance table");
+
+    // verify
+    /*auto it = std::find(tables.cbegin(), tables.cend(), hash);
     assertm(it != tables.end(), "Missing walking distance table");
-    auto index = std::distance(tables.cbegin(), it);
+    auto index2 = std::distance(tables.cbegin(), it);
+
+    if (index != index2) {
+        DEBUG("mismatch " << index << " vs " << index2);
+        exit(1);
+    }*/
 
     return index;
 }

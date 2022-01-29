@@ -1,15 +1,18 @@
 bin/
 obj/
 results/
+prof/*
 
 wbin/puzzle.js
 wbin/puzzle.wasm
 wobj/
 
-databases/*.dat
+databases/*
 .DS_Store
 .vs/
 .vscode/
 misc/
 build/
 compile_commands.json
+scripts/out
+**/node_modules

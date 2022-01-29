@@ -11,11 +11,17 @@ public:
     static bool showHelp();
     static bool databaseExists();
     static bool boardExists();
+    static bool fsmDepthLimitExists();
     static bool showInteractive();
     static bool runParallel();
+    static bool fsmFileExists();
+    static bool evaluateBranchingFactor();
 
     static std::string getDatabase();
     static std::string getBoard();
+    static int getFSMDepthLimit();
+    static std::string getFSMFile();
+
 
 private:
     static std::unordered_map<std::string, std::vector<std::string>> tokens;

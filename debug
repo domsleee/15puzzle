@@ -1,1 +1,0 @@
-g++-11 -g -std=c++17 src/*.cpp -o bin/puzzle && lldb ./bin/puzzle

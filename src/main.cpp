@@ -11,9 +11,13 @@
 #include "../include/BoardRect.h"
 #include "../include/DisjointDatabase.h"
 #include "../include/Idastar.h"
+#include "../include/IdastarMulti.h"
 #include "../include/InputParser.h"
 #include "../include/Util.h"
 #include "../include/WalkingDistance.h"
+#include "../include/FSMBuilder.h"
+#include "../include/Tests.h"
+#include "../include/BranchFactor.h"
 
 // Dynamic board size
 // Dynamic database pattern
@@ -32,7 +36,17 @@ void usage() {
                  "    -h, --help\n"
                  "        Print this help\n"
                  "    -i, --interactive\n"
-                 "        Show a playback of each solution\n\n";
+                 "        Show a playback of each solution\n"
+                 "    -f, --fsmDepthLimit\n"
+                 "        Specify a depth limit for constructing the FSM\n"
+                 "    --fsmFile\n"
+                 "        Specify a file of forbidden words to use for the FSM\n"
+                 "    -e, --evaluateBranchFactor\n"
+                 "        Evaluate the branching factor of an exhaustive DFS\n"
+                 "    -i, --interactive\n"
+                 "        Show a playback of each solution\n"
+                 "    -p\n"
+                 "        Use parallel BFS + IDA* search\n\n";
 }
 
 struct DBData {
@@ -119,12 +133,11 @@ bool solvable(const std::vector<int>& solution, int width,
            (getInversions(board) % 2 == (solutionBlankRow - boardBlankRow) % 2);
 }
 
-template <class B>
-void solve(const std::vector<int>& solution, int width, int height,
-           const std::vector<std::vector<int>>& grids) {
-    // Setup search
-    Idastar<B> search;
-
+template <class Search, class B>
+void solveWithSearch(Search &search,
+            const std::vector<int>& solution, int width, int height,
+            const std::vector<std::vector<int>>& grids, StateMachineSimple &fsm)
+{
     // Start search
     std::vector<std::pair<B, std::vector<Direction>>> results;
     START_TIMER(solve);
@@ -165,7 +178,23 @@ void solve(const std::vector<int>& solution, int width, int height,
     }
 }
 
+template <class B>
+void solve(const std::vector<int>& solution, int width, int height,
+           const std::vector<std::vector<int>>& grids, StateMachineSimple &fsm) {
+    // Setup search
+    if (InputParser::runParallel()) {
+        DEBUG("Running parallel");
+        IdastarMulti<B> search(fsm, solution);
+        solveWithSearch<IdastarMulti<B>, B>(search, solution, width, height, grids, fsm);
+    } else {
+        DEBUG("Running single threaded");
+        Idastar<B> search(fsm);
+        solveWithSearch<Idastar<B>, B>(search, solution, width, height, grids, fsm);
+    }
+}
+
 int main(int argc, const char* argv[]) {
+    //return runTests();
     InputParser::parse(argc, argv);
 
     // Help output
@@ -183,6 +212,19 @@ int main(int argc, const char* argv[]) {
     }
     const auto solution = combine(grids);
 
+    // getfsm
+    auto fsmDepth = 14;
+    if (InputParser::fsmDepthLimitExists()) {
+        fsmDepth = InputParser::getFSMDepthLimit();
+    }
+    auto fsmBuilder = FSMBuilder(width, height, fsmDepth);
+    auto fsm = fsmBuilder.build();
+
+    if (InputParser::evaluateBranchingFactor()) {
+        evaluateBranchFactor(fsm, width, height);
+        return 0;
+    }
+
     // Setup database
     START_TIMER(db);
     DisjointDatabase::load(grids, dbName, width, height);
@@ -199,9 +241,9 @@ int main(int argc, const char* argv[]) {
     const auto startBoards(getBoards());
 
     if (width == height) {
-        solve<Board>(solution, width, height, startBoards);
+        solve<Board>(solution, width, height, startBoards, fsm);
     } else {
-        solve<BoardRect>(solution, width, height, startBoards);
+        solve<BoardRect>(solution, width, height, startBoards, fsm);
     }
 
     return 0;
