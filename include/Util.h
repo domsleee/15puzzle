@@ -12,7 +12,6 @@
 
 #include "Direction.h"
 #include "BoardRaw.h"
-#include "Memory.h"
 
 #define FAIL(reason) { DEBUG("FAIL: " << reason); exit(1); }
 #define MAX_LL std::numeric_limits<long long>::max()

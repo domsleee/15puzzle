@@ -1,4 +1,5 @@
 #include "../include/Pattern.h"
+#include "../include/Util.h"
 
 #include <execution>
 #include <numeric>

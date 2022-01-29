@@ -10,5 +10,5 @@ make -j
 #./bin/puzzle -d databases/555-reg -b boards/15-reg --fsmItLimit 60411400
 #                                                           
 #./bin/puzzle -d databases/6666-reg --fsmDepthLimit 22 -e
-./bin/puzzle -d databases/6666-reg -b boards/24-1problem --fsmDepthLimit 14 -p
+./bin/puzzle -b boards/24-1problem -d databases/888-reg --fsmDepthLimit 2
 exit 0

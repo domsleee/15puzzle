@@ -31,7 +31,7 @@ Grid DisjointDatabase::tileDeltas;
 Grid DisjointDatabase::mirrPos;
 Grid DisjointDatabase::mirror;
 
-std::vector<Cost> generatePattern(const Grid& pattern, int size) {
+std::vector<Cost> generatePattern(const Grid& pattern, std::size_t size) {
     PatternGroup group(pattern, width, height);
 
     // For logging
@@ -96,7 +96,7 @@ void savePattern(const std::vector<Cost>& costs, const std::string& filename) {
 }
 
 std::vector<Cost> loadPattern(const Grid& pattern, const std::string& filename,
-                              int size) {
+                              std::size_t size) {
     std::ifstream file(filename, std::ios::in | std::ios::binary);
     if (!file.good()) {
         // Database file missing, generate database
@@ -158,7 +158,7 @@ void DisjointDatabase::load(const std::vector<Grid>& patterns,
     for (std::size_t i = 0; i < patterns.size(); i++) {
         DEBUG("Pattern #" << i << ':');
 
-        int size = 1;      // # of entries in database
+        std::size_t size = 1;      // # of entries in database
         int numTiles = 0;  // # of tiles in partial pattern
 
         for (int j = 0; j < length; j++) {

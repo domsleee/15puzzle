@@ -11,7 +11,7 @@
 struct Pattern {
     std::vector<int> pos;   // Value to position mapping
     std::vector<int> grid;  // Position to value mapping
-    int id;                 // distMap key
+    long long id;           // distMap key
 };
 
 // Stores pre-computed values for family of Patterns
