@@ -21,7 +21,6 @@ struct ForbiddenWordsIDFS {
     //using BoardRepT = BoardRepTempl<(WIDTH*2-1)>;
     using BoardRepT = BoardRepSub<WIDTH>; // BoardRepTempl<(WIDTH*2-1)>;
     using UseSubBoard = std::is_same<BoardRepT, BoardRepSub<WIDTH>>;
-    
 
     const long long depthLimit;
     const int width, height;

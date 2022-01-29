@@ -45,12 +45,13 @@ std::vector<std::string> FSMBuilder::getForbiddenWords() const {
         IDFS_IF(4);
         IDFS_IF(5);
     }
-    throw "not supported";
+    // todo: proper implementation of IDFS for other dimensions
+    auto ret = ForbiddenWordsFast(maxDepth, width, height).getForbiddenWords();
+    return {ret.begin(), ret.end()};
 }
 
 
 StateMachineSimple dfsOrderFSM(StateMachine fsm) {
-
     // out, g
     std::queue<int> st;
     std::unordered_set<int> seen;
@@ -110,6 +111,5 @@ StateMachineSimple dfsOrderFSM(StateMachine fsm) {
     }
     // 59...
     DEBUG("Rebuilt with " << newNumStates << " STATES");
-    //exit(0);
     return StateMachineSimple(std::move(g));
 }
