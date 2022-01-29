@@ -53,6 +53,10 @@ bool InputParser::evaluateBranchingFactor() {
     return optionExists("-e") || optionExists("--evaluateBranchFactor");
 }
 
+bool InputParser::runTests() {
+    return optionExists("-t") || optionExists("--tests");
+}
+
 std::string InputParser::getDatabase() {
     auto args = getMultipleArgs({"-d", "--database"});
     if (args.empty()) {

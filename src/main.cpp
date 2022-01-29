@@ -35,6 +35,8 @@ void usage() {
                  "        Use database file\n"
                  "    -h, --help\n"
                  "        Print this help\n"
+                 "    -t, --tests\n"
+                 "        Run tests\n"
                  "    -i, --interactive\n"
                  "        Show a playback of each solution\n"
                  "    -f, --fsmDepthLimit\n"
@@ -194,8 +196,12 @@ void solve(const std::vector<int>& solution, int width, int height,
 }
 
 int main(int argc, const char* argv[]) {
-    //return runTests();
     InputParser::parse(argc, argv);
+
+    if (InputParser::runTests()) {
+        runTests();
+        return 0;
+    }
 
     // Help output
     if (InputParser::showHelp()) {

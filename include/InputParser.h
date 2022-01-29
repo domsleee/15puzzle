@@ -16,6 +16,7 @@ public:
     static bool runParallel();
     static bool fsmFileExists();
     static bool evaluateBranchingFactor();
+    static bool runTests();
 
     static std::string getDatabase();
     static std::string getBoard();

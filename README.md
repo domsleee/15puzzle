@@ -50,8 +50,6 @@ Options:
 
 
 ## Profiling
-May need `libprocps-dev`.
-
 https://gperftools.github.io/gperftools/cpuprofile.html
 
 ```
