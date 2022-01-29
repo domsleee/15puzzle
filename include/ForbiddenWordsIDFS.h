@@ -12,6 +12,7 @@
 #include "BoardRepTempl.h"
 #include "BoardRepSub.h"
 #include "ForbiddenWordsUtil.h"
+#include "ForbiddenWordsScore.h"
 #include "../third_party/btree/map.h"
 #include "../third_party/btree/set.h"
 
@@ -30,6 +31,7 @@ struct ForbiddenWordsIDFS {
     std::set<CompressedPath> forbiddenWords;
     const BoardRaw startBoard;
     btree::map<BoardRepT, std::vector<CompressedPath>> boardToPaths;
+    ForbiddenWordsScorer forbiddenWordsScorer;
 
     ForbiddenWordsIDFS(long long depthLimit, int width, int height);
     std::vector<std::string> getForbiddenWords();

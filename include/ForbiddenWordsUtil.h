@@ -114,7 +114,6 @@ using TwoPartition = std::pair<StringVec, StringVec>;
 std::vector<TwoPartition> get2Partitions(const StringVec &strings); 
 
 const int INVALID_PARTITION = -1;
-double getScore(const TwoPartition &twoPartition, int width);
 
 std::pair<bool, std::vector<std::string>> getFSMWordsFromFile(const std::string &filename);
 

@@ -21,7 +21,8 @@ ForbiddenWordsIDFS<WIDTH>::ForbiddenWordsIDFS(long long depthLimit, int width, i
       dfsCount(0),
       clearCount(0),
       isCleaning(false),
-      startBoard(getExploreBoard(width))
+      startBoard(getExploreBoard(width)),
+      forbiddenWordsScorer(width, height)
 {
 }
 
@@ -47,7 +48,8 @@ std::vector<std::string> ForbiddenWordsIDFS<WIDTH>::getForbiddenWords() {
         clearCount = 0;
         DEBUG("paths length limit: " << limit << ", size: " << forbiddenWords.size());
         auto fsm = BuildFSMFromStrings(decompressPaths(forbiddenWords));
-        
+        forbiddenWordsScorer.updateProbabilities(fsm);
+
         fsm.undoMove(0);
         std::string path;
         dfs(startBoard, path, limit, fsm);
@@ -124,15 +126,8 @@ void ForbiddenWordsIDFS<WIDTH>::processAndClearBoardToPaths() {
         const auto [boardRep, paths] = *boardToPaths.begin();
         if (paths.size() >= 2) {
             auto partitions = get2Partitions(paths);
-            std::vector<std::pair<double, TwoPartition>> partitionPairs;
-            for (const auto &partition: partitions) {
-                partitionPairs.push_back({getScore(partition, width), partition});
-            }
-            std::sort(partitionPairs.begin(), partitionPairs.end(), std::greater<std::pair<double, TwoPartition>>());
-
-            auto best = partitionPairs[0];
-            // no invalid partition... the forbiddenwords can be empty
-            for (const auto &s: best.second.first) {
+            auto bestPartition = forbiddenWordsScorer.getBestPartition(partitions);
+            for (const auto &s: bestPartition.first) {
                 forbiddenWords.emplace(s.decompress());
             }
         }

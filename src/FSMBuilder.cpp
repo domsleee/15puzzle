@@ -9,7 +9,6 @@
 #include <queue>
 #include <unordered_set>
 
-StateMachineSimple dfsOrderFSM(StateMachine fsm);
 
 FSMBuilder::FSMBuilder(int width, int height, int maxDepth):
     width(width),

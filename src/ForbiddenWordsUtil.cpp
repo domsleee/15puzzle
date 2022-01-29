@@ -64,45 +64,6 @@ std::vector<TwoPartition> get2Partitions(const StringVec &strings) {
     return res;
 }
 
-
-// two partitions
-// FORBIDDEN
-// PERMITTED
-
-// for every FORBIDDEN operator, there must be at least one PERMITTED operator which has a
-// length less than or equal to it, which bounding box is a subrange of the forbidden operator.
-
-double getScore(const TwoPartition &twoPartition, int width) {
-    for (auto &forbiddenWordComp: twoPartition.first) {
-        auto forbiddenWord = forbiddenWordComp.decompress();
-
-        std::vector<std::string> filt;
-        for (auto perm: twoPartition.second) {
-            if (perm.decompress().size() <= forbiddenWord.size()) filt.push_back(perm.decompress());
-        }
-
-        if (filt.size() == 0) return INVALID_PARTITION;
-
-        bool ok = false;
-        auto forbiddenWordRange = getCriticalPoints(forbiddenWord);
-        for (auto perm: filt) {
-            auto permittedRange = getCriticalPoints(perm);
-            if (isSubRange(forbiddenWordRange, permittedRange)) {
-                ok = true;
-                break;
-            }
-        }
-        if (ok) continue;
-        return INVALID_PARTITION;
-    }
-
-    double score = 0;
-    for (auto &forbiddenWord: twoPartition.first) {
-        score += getScore(forbiddenWord.decompress(), width);
-    }
-    return score;
-}
-
 std::pair<bool, std::vector<std::string>> getFSMWordsFromFile(const std::string &filename) {
     std::vector<std::string> forbiddenWords = {};
     if (InputParser::fsmFileExists()) {

@@ -230,7 +230,7 @@ int main(int argc, const char* argv[]) {
     // Reading board file
     const auto startBoards(getBoards());
 
-    if (width == height) {
+    if (false && width == height) {
         solve<Board>(solution, width, height, startBoards, fsm);
     } else {
         solve<BoardRect>(solution, width, height, startBoards, fsm);

@@ -9,3 +9,4 @@ public:
     std::vector<std::string> getForbiddenWords() const;
 };
 
+StateMachineSimple dfsOrderFSM(StateMachine fsm);
