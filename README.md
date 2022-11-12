@@ -6,7 +6,7 @@ It is a fork of https://github.com/MichaelKim/15puzzle, with a few additions:
 * Use of a forbidden word dictionary to prune duplicate nodes in the IDA* search. This reduces the branching factor of the dfs.
 * The multiprocessing flag `-p` uses BFS+IDA* search to find a solution.
 
-See [blog post](https://domslee.com/npuzzle/pruning/dfs/2021/11/25/solving-the-24-puzzle.html).
+See [blog post](hhttps://domslee.com/2021/11/25/solving-the-24-puzzle.html).
 
 ## Suggested Improvements
 
